@@ -25,11 +25,11 @@ function App() {
           <Route element={<ProtectedRoute/>}>
           <Route path="/desktop/:userId/chats" element={<DesktopLayout/>}>
             <Route  index element={<ChatsDesktop/>} />
-            <Route path=":/chatId" element={<ChatDesktop/>}/>
+            <Route path=":chatId" element={<ChatDesktop/>}/>
           </Route>
           <Route path ="/mobile/:userId/chats">
             <Route index element={<ChatsMobile/>}/>
-            <Route path="/:chatId" element={<ChatMobile/>}/>
+            <Route path=":chatId" element={<ChatMobile/>}/>
           </Route>
           <Route path="/invite-link/:chatId/:inviteCode" element={<InviteRedirect/>}/>
           </Route>

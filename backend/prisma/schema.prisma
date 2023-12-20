@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  username    String    @unique
+  email       String
+  clerkId     String    @unique
+  isOnboarded Boolean   @default(false)
+  avatar      String
+  createdAt   DateTime  @default(now())
+  lastSeen    DateTime  @default(now())
+  bio         String?
+  Member      Member[]
+  Message     Message[]
+}
+
+model Member {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String     @db.ObjectId
+  role            MemberRole @default(MEMBER)
+  Chat            Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId          String     @unique @db.ObjectId
+  joinedAt        DateTime
+  readMessages    Message[]  @relation(name: "ReadBy", references: [id], fields: [readMessagesIds])
+  readMessagesIds String[]   @db.ObjectId
+}
+
+model Message {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  body        String?
+  Sender      User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId    String      @db.ObjectId
+  isEditted   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  resourceUrl String?
+  Chat        Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId      String      @db.ObjectId
+  type        MessageType @default(TEXT)
+  readBy      Member[]    @relation(name: "ReadBy", references: [id], fields: [readByIds])
+  readByIds   String[]    @db.ObjectId
+}
+
+model Chat {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  message     Message[]
+  members     Member[]
+  isGroup     Boolean      @default(false)
+  inviteCode  String       @unique
+  name        String?
+  description String?
+  privacy     PrivacyType? @default(PRIVATE)
+}
+
+enum PrivacyType {
+  PUBLIC
+  PRIVATE
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum MessageType {
+  TEXT
+  AUDIO
+  IMAGE
+  VIDEO
+}

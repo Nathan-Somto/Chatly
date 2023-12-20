@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket IO tutorial</title>
+    <style>
+      h1 {
+        text-align: center;
+        color: rgb(253, 77, 174);
+      }
+      body {
+        max-width: 1300px;
+        width: 90%;
+        margin: 0 auto;
+        font-family: sans-serif;
+      }
+      .chat__container {
+        height: 80vh;
+        min-height: 200px;
+        border: 1px solid #000;
+        padding: 12px;
+        overflow: auto;
+        display: flex;
+        margin-top: 10px;
+        flex-direction: column;
+      }
+      .chat__container .room_id {
+        background-color: #ccc;
+        font-weight: 600;
+        border-radius: 0;
+        color: #333;
+      }
+      .chat__container div {
+        border-radius: 20px;
+        padding: 8px 12px;
+        color: #fff;
+        margin-bottom: 15px;
+      }
+      .chat__container .reciever {
+        background-color: #e43d66;
+        align-self: flex-end;
+      }
+      .chat__container .sender {
+        background-color: #e234bc;
+        align-self: flex-start;
+      }
+      form {
+        width: 100%;
+        padding: 8px;
+      }
+      .form__container {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        margin-bottom: 6px;
+        margin-top: 16px;
+      }
+      .form__label {
+        width: 70px;
+      }
+      .form__input {
+        padding: 8px;
+        height: 16px;
+        flex-grow: 0.7;
+      }
+      .form__button {
+        height: 35px;
+        flex-shrink: 0;
+        width: 70px;
+        border: none;
+        border-radius: 6px;
+        cursor:pointer;
+        transition:  all 0.3s ease-in;
+      }
+      .form__button:hover{
+        opacity: 0.5;
+      }
+      .blue {
+        background-color: rgb(77, 77, 245);
+      }
+      .green {
+        background-color: rgb(98, 248, 98);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sample Chat Application</h1>
+    <div class="chat__container">
+      <div class="room_id">Room Id:  <span></span></div>
+    </div>
+    <form>
+      <div class="form__container">
+        <label class="form__label" for="room_id">Room</label>
+        <input class="form__input" id="room_id" type="text" />
+        <button class="form__button green" type="button">Join</button>
+      </div>
+      <div class="form__container">
+        <label class="form__label" for="message">Message</label>
+        <input class="form__input" id="message" type="text" />
+        <button class="form__button blue" type="submit">Send</button>
+      </div>
+    </form>
+    <script src='https://cdn.socket.io/4.7.2/socket.io.min.js'>
+    </script>
+    <script src="./app.js"></script>
+  </body>
+</html>

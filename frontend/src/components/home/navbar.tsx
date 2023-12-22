@@ -1,5 +1,5 @@
 import { Logo } from "@/assets";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "../ui/button";
 import { useState } from "react";
@@ -29,6 +29,7 @@ const linkData = [
 ];
 const navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
+  const navigate = useNavigate();
   return (
     <nav className="fixed top-0 left-0 right-0 max-w-[1440px] mx-auto overflow-hidden w-full flex items-center justify-between px-10 py-4 h-20 z-[99999] bg-white">
       <img
@@ -56,12 +57,13 @@ const navbar = () => {
         </ul>
         <div className="flex flex-col md:flex-row items-center md:gap-3 gap-5">
           <Button
+            onClick={() => navigate('/sign-in')}
             variant="ghost"
             className="max-md:!p-0 max-md:!text-2xl max-md:!h-auto max-md:hover:!bg-transparent max-md:hover:!text-white max-md:hover:opacity-50"
           >
             Login
           </Button>
-          <Button className="text-white max-md:!p-0 max-md:!text-2xl max-md:!h-auto max-md:hover:!bg-transparent max-md:hover:!text-white max-md:hover:opacity-50">
+          <Button onClick={() => navigate("/sign-up")} className="text-white max-md:!p-0 max-md:!text-2xl max-md:!h-auto max-md:hover:!bg-transparent max-md:hover:!text-white max-md:hover:opacity-50">
             Get Started
           </Button>
         </div>

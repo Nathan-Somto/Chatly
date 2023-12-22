@@ -91,6 +91,25 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
         },
       },
       include: {
+        members: {
+          take: 3,
+          where : {
+            userId : {
+              not: userId 
+            }
+          },
+          select: {
+            user: true
+          },
+          include : {
+            user: {
+              select : {
+                avatar : true,
+                username: true
+              }
+            }
+          }
+        },
         message: {
           take: 1,
           orderBy: {
@@ -99,16 +118,8 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
           select: {
             body: true,
             createdAt: true,
-            id: true,
           },
           include: {
-            Sender: {
-              select: {
-                avatar: true,
-                id: true,
-                username: true,
-              },
-            },
             readBy: {
               select: {
                 userId: true,
@@ -116,8 +127,9 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
             },
           },
         },
-      },
+      }
     });
+    //console.log(chats[0].)
     return res.status(200).json({
       success: true,
       chats,

@@ -1,7 +1,7 @@
+import { SignUp } from "@clerk/clerk-react";
+
 function SignUpPage() {
-  return (
-    <div>Clerk sign up page comes here!</div>
-  )
+  return <SignUp afterSignUpUrl={"/onboarding"} signInUrl="/sign-in" />;
 }
 
-export default SignUpPage
+export default SignUpPage;

@@ -11,6 +11,7 @@ import ChatsMobile from "./pages/ChatsMobile";
 import Onboarding from "./pages/Onboarding";
 import ChatMobile from "./pages/ChatMobile";
 import InviteRedirect from "./pages/InviteRedirect";
+import AuthLayout from "./components/layout/auth-layout";
 
 
 function App() {
@@ -19,9 +20,11 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/onboarding" element={<Onboarding/>} />
+          <Route element={<AuthLayout/>}>
           <Route path="/sign-in/*" element={<SignIn/>}/>
           <Route path="/sign-up/*" element={<SignUp/>}/>
-          <Route path="/onboarding" element={<Onboarding/>} />
+          </Route>
           <Route element={<ProtectedRoute/>}>
           <Route path="/desktop/:userId/chats" element={<DesktopLayout/>}>
             <Route  index element={<ChatsDesktop/>} />

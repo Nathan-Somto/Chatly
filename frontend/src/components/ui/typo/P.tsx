@@ -4,7 +4,7 @@ import { TypoProps } from "./type";
 const P = ({ children, className, ...props }: TypoProps) => {
   return (
     <p
-      className={cn("leading-7 [&:not(:first-child)]:mt-6 ", className)}
+      className={cn("leading-7 ", className)}
       {...props}
     >
       {children}

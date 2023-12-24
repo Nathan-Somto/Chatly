@@ -1,4 +1,3 @@
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChatBoxType } from '.';
@@ -13,7 +12,7 @@ function ChatBox({
     members
 
 }: Props) {
-    const isDesktop = useMediaQuery('(min-width: 1024px)');
+
     const {pathname} = useLocation();
     const navigate = useNavigate();
     const user = {
@@ -22,7 +21,7 @@ function ChatBox({
 
     const selected = pathname.includes(id);
     function handleClick(){
-        navigate(`/${isDesktop ? 'desktop' : 'mobile'}/${user.id}/${id}`)
+        navigate(`/${user.id}/chats/${id}`)
     }
     const hasSeen = useMemo(() => {
         return readBy.some((value) => value.userId === user.id )

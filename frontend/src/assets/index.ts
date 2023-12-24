@@ -11,7 +11,8 @@ import avatar1 from "./avatar1.png"
 import avatar2 from "./avatar2.png"
 import avatar3 from "./avatar3.png"
 import Group from "./group.svg"
-
+import DarkWall from "./dark-wallpaper-1.png"
+import LightWall from "./light-wallpaper-1.jpg"
 export {
     femaleHero,
     groupChats,
@@ -25,5 +26,7 @@ export {
     avatar1,
     avatar2,
     avatar3,
-    Group
+    Group,
+    DarkWall,
+    LightWall
 }

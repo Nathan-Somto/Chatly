@@ -23,9 +23,9 @@ function SidebarHeader({ openDrawer, handleSearch, showBack, goBackToChats }: Pr
     setKeywords('');
   }
   return (
-    <header className="flex items-center justify-around h-16 lg:gap-2">
+    <header className="flex px-3  items-center justify-between h-16 lg:gap-2">
       {showBack ? (
-        <Button onClick={handleClick} variant={'ghost'} className="p-0 text-gray-500 hover:bg-transparent hover:text-gray-500">
+        <Button onClick={handleClick} variant={'ghost'} className="p-0  text-gray-500 hover:bg-transparent hover:text-gray-500">
           <ChevronLeft size={26}/>
           <span className="sr-only">Back</span>
         </Button>
@@ -33,18 +33,18 @@ function SidebarHeader({ openDrawer, handleSearch, showBack, goBackToChats }: Pr
       <Button
         onClick={() => openDrawer(true)}
         variant={"ghost"}
-        className="p-0  text-gray-500 rounded-[50%] h-10 w-10 flex-shrink-0 overflow-hidden hover:bg-transparent hover:text-gray-500 border-2 border-slate-500  dark:border-slate-700"
+        className="p-0  text-gray-500 rounded-[50%] h-12 w-12 lg:h-10 lg:w-10 flex-shrink-0 overflow-hidden hover:bg-transparent hover:text-gray-500 border-2 border-slate-500  dark:border-slate-700"
       >
        <img src={user.avatar} alt="user's avatar" className="h-full w-full object-cover"/>
       </Button>
       )}
-      <form onSubmit={handleSubmit} className="w-[80%] flex-shrink-0">
+      <form onSubmit={handleSubmit} className=" w-[calc(90%-48px)] lg:w-[80%] flex-shrink-0">
         <label className="w-full  relative  ">
           <Button
             variant={"ghost"}
             className="absolute left-0 top-0 ml-2 bottom-0 my-auto h-fit w-fit mr-4 p-0 text-gray-500 hover:bg-transparent hover:text-gray-500"
           >
-            <SearchIcon size={18} />
+            <SearchIcon size={16} />
             <p className="sr-only">Search</p>
           </Button>
           <input
@@ -53,7 +53,7 @@ function SidebarHeader({ openDrawer, handleSearch, showBack, goBackToChats }: Pr
             placeholder="Search for users"
             onChange={(e) => setKeywords(e.target.value)}
             value={keywords}
-            className="w-full py-2 pl-9 pr-4 h-10  placeholder-slate-400  text-gray-600 border border-gray-300 focus:border-transparent rounded-lg outline-none focus:ring-brand-p2 focus:ring-2"
+            className="w-full py-2 pl-9 pr-4 h-10  placeholder-slate-400  text-gray-600 border border-gray-300 focus:border-transparent rounded-3xl outline-none focus:ring-brand-p2 focus:ring-2"
           />
         </label>
       </form>

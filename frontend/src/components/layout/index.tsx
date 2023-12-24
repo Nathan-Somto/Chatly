@@ -1,2 +1,3 @@
-import DesktopLayout from "./dekstop-layout";
-export { DesktopLayout };
+import ChatsLayout from "./chats-layout";
+import AuthLayout from "./auth-layout";
+export { ChatsLayout, AuthLayout };

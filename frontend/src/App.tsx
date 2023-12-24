@@ -4,12 +4,10 @@ import Home from "@/pages/Home";
 import ProtectedRoute from "./components/wrappers/protected-route";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
-import {DesktopLayout} from "@/components/layout";
-import ChatsDesktop from "@/pages/ChatsDesktop";
-import ChatDesktop from "@/pages/ChatDesktop";
-import ChatsMobile from "./pages/ChatsMobile";
+import {ChatsLayout} from "@/components/layout";
+import Chats from "@/pages/Chats";
+import Chat from "@/pages/Chat";
 import Onboarding from "./pages/Onboarding";
-import ChatMobile from "./pages/ChatMobile";
 import InviteRedirect from "./pages/InviteRedirect";
 import AuthLayout from "./components/layout/auth-layout";
 
@@ -26,13 +24,9 @@ function App() {
           <Route path="/sign-up/*" element={<SignUp/>}/>
           </Route>
           <Route element={<ProtectedRoute/>}>
-          <Route path="/desktop/:userId/chats" element={<DesktopLayout/>}>
-            <Route  index element={<ChatsDesktop/>} />
-            <Route path=":chatId" element={<ChatDesktop/>}/>
-          </Route>
-          <Route path ="/mobile/:userId/chats">
-            <Route index element={<ChatsMobile/>}/>
-            <Route path=":chatId" element={<ChatMobile/>}/>
+          <Route path="/:userId/chats" element={<ChatsLayout/>}>
+            <Route  index element={<Chats/>} />
+            <Route path=":chatId" element={<Chat/>}/>
           </Route>
           <Route path="/invite-link/:chatId/:inviteCode" element={<InviteRedirect/>}/>
           </Route>

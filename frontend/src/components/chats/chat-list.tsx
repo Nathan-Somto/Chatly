@@ -85,7 +85,7 @@ const data: ChatBoxType[] = [
 ]
 function ChatList() {
   return (
-    <section className="mt-8 space-y-1 lg:h-[calc(100%-16*0.25rem)] lg:overflow-auto">
+    <section className="mt-8 px-3 space-y-1 lg:h-[calc(100%-16*0.25rem)] lg:overflow-auto">
       {
         data.map((item) => <ChatBox {...item} key={item.id}/> )
       }

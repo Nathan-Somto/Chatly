@@ -9,8 +9,10 @@ import { useNavigate } from "react-router-dom";
 function Hero() {
   const navigate = useNavigate();
   return (
-    <header className="mt-20 flex flex-col pt-12 max-w-[1440px] mx-auto gap-12 lg:pt-0 lg:gap-0 px-10 lg:flex-row lg:justify-between lg:items-center">
+    <header id="hero" className="mt-20 flex flex-col pt-12 max-w-[1440px] mx-auto gap-12 lg:pt-0 lg:gap-0 px-10 lg:flex-row lg:justify-between lg:items-center">
       <div
+        data-aos="slide-right"
+        data-aos-anchor="#hero"
         className="w-[90%] lg:w-[450px] xl:w-[600px] flex-shrink-0 self-start lg:mt-[80px]
       "
       >
@@ -57,7 +59,7 @@ function Hero() {
           </div>
         </div>
       </div>
-      <figure className="h-[450px]  lg:w-[550px]  w-full max-w-[700px] lg:max-w-none lg:h-auto">
+      <figure data-aos="zoom-in" className="h-[450px]  lg:w-[550px]  w-full max-w-[700px] lg:max-w-none lg:h-auto">
         <img src={heroImage} alt="" className="h-full object-left w-full object-contain" />
       </figure>
     </header>

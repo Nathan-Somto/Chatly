@@ -30,7 +30,7 @@ const data = [
 function Features() {
   return (
     <section className="" id="features">
-      <H2 className="text-center text-[#1B1C20] xl:text-5xl/normal text-4xl my-16">What Chatly Offers?</H2>
+      <H2  data-aos="fade-up" className="text-center text-[#1B1C20] xl:text-5xl/normal text-4xl my-16">What Chatly Offers?</H2>
       {data.map((item, index) => (
         <article
           key={item.id}
@@ -39,14 +39,14 @@ function Features() {
             index % 2 !== 0 && "lg:flex-row-reverse bg-white"
           )}
         >
-          <figure className= "w-[22rem] h-[15rem] sm:w-[32rem]  sm:h-[22rem] flex-shrink-0">
+          <figure data-aos={index % 2 === 0 ? "slide-right": "slide-left"} className= "w-[22rem] h-[15rem] sm:w-[32rem]  sm:h-[22rem] flex-shrink-0">
             <img
               src={item.imgUrl}
               alt={item.altText}
               className="h-full w-full object-contain"
             />
           </figure>
-          <div className={"lg:w-[500px] w-full max-w-[500px] mt-12 lg:mt-0"}>
+          <div   data-aos= {index % 2 === 0 ? "slide-left": "slide-right"} data-aos-delay={200} className={"lg:w-[500px] w-full max-w-[500px] mt-12 lg:mt-0"}>
             <H2 className="text-[#1B1C20] text-4xl lg:mb-3 xl:mb-4 w-[80%] mb-5 mx-auto lg:mx-0 lg:w-[90%] xl:text-5xl/normal">
               {item.heading2}
             </H2>

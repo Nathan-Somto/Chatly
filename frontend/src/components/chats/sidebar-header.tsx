@@ -53,7 +53,7 @@ function SidebarHeader({ openDrawer, handleSearch, showBack, goBackToChats }: Pr
             placeholder="Search for users"
             onChange={(e) => setKeywords(e.target.value)}
             value={keywords}
-            className="w-full py-2 pl-9 pr-4 h-10  placeholder-slate-400  text-gray-600 border border-gray-300 focus:border-transparent rounded-3xl outline-none focus:ring-brand-p2 focus:ring-2"
+            className="w-full py-2 pl-9 pr-4 h-10 dark:bg-gray-50 placeholder-gray-400  text-gray-600 border border-gray-300 focus:border-transparent rounded-3xl outline-none focus:ring-brand-p2 focus:ring-2"
           />
         </label>
       </form>

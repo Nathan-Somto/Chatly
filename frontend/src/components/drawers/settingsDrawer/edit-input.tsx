@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, Pencil } from "lucide-react";
+import { useAutoGrowTextarea } from "@/hooks/useAutoGrowTextarea";
 type Props = {
     label: string;
     defaultValue: string;
@@ -8,16 +9,13 @@ type Props = {
   };
   export default function EditInput({ label, defaultValue, onChange }: Props) {
     const [enable, setEnable] = useState(false);
-    const textAreaRef = useRef<HTMLTextAreaElement | null> (null);
-    useEffect(() => {
-      if(textAreaRef.current !== null){
-        textAreaRef.current.style.height = textAreaRef.current.scrollHeight + "px";
-      }
-    }, [defaultValue])
+    const {
+      textAreaRef
+    } = useAutoGrowTextarea({value: defaultValue});
     
     return (
       <div>
-        <label className="text-black/90 font-medium text-sm">{label}</label>
+        <label className="text-gray-900 dark:text-gray-200 font-medium text-sm">{label}</label>
         <div className="relative mt-1">
           <textarea
             value={defaultValue}
@@ -26,7 +24,7 @@ type Props = {
             rows={10}
             cols={10}
             ref={textAreaRef}
-            className="w-full resize-none overflow-hidden py-2  pr-9 pl-2 h-10   placeholder-slate-400  text-gray-700 border border-gray-300 focus:border-transparent rounded-lg outline-none focus:ring-brand-p2 focus:ring-2"
+            className="w-full resize-none overflow-hidden py-2  pr-9 pl-2 h-10   placeholder-neutral-400 dark:text-gray-300 !bg-transparent text-gray-500 border border-gray-300 focus:border-transparent rounded-lg outline-none focus:ring-brand-p2 focus:ring-2"
           />
           <Button
             onClick={() => setEnable((prevState) => !prevState)}

@@ -21,7 +21,7 @@ type SettingsItemProps = {
     return (
       <div
         className="p-3 rounded-lg  w-full  flex items-center gap-5
-      hover:bg-neutral-100 cursor-pointer"
+      dark:hover:bg-gray-700 cursor-pointer hover:bg-gray-300"
         role="button"
         onClick={() => (handleClick ? handleClick(text) : null)}
       >
@@ -35,10 +35,10 @@ type SettingsItemProps = {
         ) : (
           <Icon
             size={size}
-            className={cn("text-gray-600", danger && "text-red-600")}
+            className={cn("text-gray-600 dark:text-gray-400", danger && "text-red-600 dark:text-red-700")}
           />
         )}
-        <P className={cn("text-gray-600 font-medium mt-0", danger && "text-red-600")}>{text}</P>
+        <P className={cn("text-gray-600 dark:text-gray-400 font-medium mt-0", danger && "text-red-600 dark:text-red-700")}>{text}</P>
       </div>
     );
   }

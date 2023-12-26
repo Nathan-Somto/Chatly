@@ -9,12 +9,12 @@ import { useNavigate } from "react-router-dom";
 function Hero() {
   const navigate = useNavigate();
   return (
-    <header className="mt-24 flex flex-col max-w-[1440px] mx-auto gap-12 lg:gap-0 px-10 lg:flex-row lg:justify-between lg:items-center">
+    <header className="mt-20 flex flex-col pt-12 max-w-[1440px] mx-auto gap-12 lg:pt-0 lg:gap-0 px-10 lg:flex-row lg:justify-between lg:items-center">
       <div
         className="w-[90%] lg:w-[450px] xl:w-[600px] flex-shrink-0 self-start lg:mt-[80px]
       "
       >
-        <H1 className="xl:text-6xl text-4xl sm:text-5xl">
+        <H1 className="xl:text-6xl text-4xl sm:text-5xl max-sm:w-[300px] max-lg:max-w-[600px] w-full mb-4 lg:mb-6 lg:text-[42px]">
           Start chatting with friends, family, anytime, anywhere.
         </H1>
         <P className="text-[#383A47] opacity-80 mb-4 w-[90%]">
@@ -57,8 +57,8 @@ function Hero() {
           </div>
         </div>
       </div>
-      <figure className="h-[450px] self-start lg:w-[550px]  w-full max-w-[700px] lg:max-w-none lg:h-auto">
-        <img src={heroImage} alt="" className="h-full w-full object-contain" />
+      <figure className="h-[450px]  lg:w-[550px]  w-full max-w-[700px] lg:max-w-none lg:h-auto">
+        <img src={heroImage} alt="" className="h-full object-left w-full object-contain" />
       </figure>
     </header>
   );

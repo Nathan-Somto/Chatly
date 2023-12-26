@@ -21,7 +21,8 @@ function AvatarGroup({ members }: Props) {
             },
           }),
         ]
-      : members.slice(3);
+      : members.slice(0,3);
+      console.log(avatarArr)
   const positionMap = {
     0: " z-[1] -top-1 left-2",
     1: "z-[2] -left-1 bottom-0",

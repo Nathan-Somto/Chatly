@@ -22,7 +22,9 @@ const data: ChatBoxType[] = [
         {
           user: {
             avatar:avatar2,
-            username: "Shelia"
+            username: "Shelia",
+            id: "1234",
+            lastSeen: new Date()
           }
         }
       ]
@@ -46,13 +48,17 @@ const data: ChatBoxType[] = [
         {
           user: {
             avatar:avatar1,
-            username: "Greg"
+            username: "Greg",
+            id: '12345',
+            lastSeen: new Date()
           }
         },
         {
           user: {
             avatar:avatar2,
-            username: "Jill"
+            username: "Jill",
+            id: '123456',
+            lastSeen: new Date()
           }
         }
       ]
@@ -76,7 +82,9 @@ const data: ChatBoxType[] = [
         {
         user: {
           avatar:avatar3,
-          username: "michael"
+          username: "michael",
+          id: '1234567',
+          lastSeen: new Date()
         }
         }
       ]

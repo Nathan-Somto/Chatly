@@ -101,7 +101,7 @@ function AuthForm({ username, bio, avatar }: Props) {
         register={register}
         className={"w-full h-[200px]"}
       />     
-        <Button className="min-w-full"  size="lg">
+        <Button className="min-w-full text-gray-100"  size="lg">
           Save
         </Button>
     </form>

@@ -6,6 +6,8 @@ type ChatBoxType = {
         user: {
             username: string;
             avatar: string;
+            id: string;
+            lastSeen: Date;
         }
     }[],
     message: {

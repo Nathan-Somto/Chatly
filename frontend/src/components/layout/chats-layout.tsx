@@ -9,7 +9,7 @@ function ChatsLayout() {
   return (
    <div>
    <Sidebar/>
-    <main className={cn("lg:block hidden w-full lg:ml-[350px] bg-gray-100 min-h-screen dark:bg-gray-900 lg:w-[calc(100%-350px)]", isChatPage && "block")}>
+    <main className={cn("lg:block hidden w-full lg:ml-[350px] bg-gray-50 min-h-screen dark:bg-gray-800 lg:w-[calc(100%-350px)]", isChatPage && "block")}>
         <Outlet/>
     </main>
    </div>

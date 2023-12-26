@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChatBoxType } from '.';
 import { useMemo } from 'react';
 import AvatarGroup from './avatar-group';
+import { ActiveChat, useActiveChat } from '@/hooks/useActiveChat';
 type Props = ChatBoxType;
 function ChatBox({
     id,
@@ -12,7 +13,7 @@ function ChatBox({
     members
 
 }: Props) {
-
+    const setActiveChat = useActiveChat((state) => state.setActiveChat)
     const {pathname} = useLocation();
     const navigate = useNavigate();
     const user = {
@@ -21,6 +22,23 @@ function ChatBox({
 
     const selected = pathname.includes(id);
     function handleClick(){
+      const dmInfo = isGroup ? null : {
+        avatar: members[0].user.avatar,
+        username: members[0].user.username,
+        id: members[0].user.id,
+        lastSeen: members[0].user.lastSeen, 
+      }
+      const groupInfo = isGroup ? null : {
+        id,
+        isGroup: true,
+        members,
+        name
+      } 
+        setActiveChat({
+          dmInfo,
+          groupInfo,
+          messages: []
+        })
         navigate(`/${user.id}/chats/${id}`)
     }
     const hasSeen = useMemo(() => {
@@ -38,11 +56,12 @@ function ChatBox({
             py-3 
             px-1
             hover:bg-neutral-100
+            dark:hover:bg-gray-700
             rounded-lg
             transition
             cursor-pointer
             `,
-            selected ? 'bg-neutral-100' : 'bg-white'
+            selected ? 'bg-neutral-100 dark:bg-gray-700' : 'bg-white dark:bg-background'
           )}
         >
           {isGroup ? <AvatarGroup
@@ -54,7 +73,7 @@ function ChatBox({
             <div className="focus:outline-none">
               <span className="absolute inset-0" aria-hidden="true" />
               <div className="flex justify-between items-center mb-1">
-                <p className="text-md font-medium text-gray-900 truncate">
+                <p className="text-md font-medium text-gray-900 truncate dark:text-gray-100">
                   {isGroup ? name : members[0]?.user?.username}
                 </p>
                 {createdAt && (
@@ -74,7 +93,7 @@ function ChatBox({
                   truncate 
                   text-sm
                   `,
-                  hasSeen ? 'text-gray-500' : 'text-black font-medium'
+                  hasSeen ? 'text-gray-500' : 'text-black font-medium dark:text-gray-400'
                 )}>
                   {body}
                 </p>

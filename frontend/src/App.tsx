@@ -1,21 +1,24 @@
 import Providers from "./components/wrappers/providers";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "@/pages/Home";
 import ProtectedRoute from "./components/wrappers/protected-route";
-import SignIn from "@/pages/SignIn";
-import SignUp from "@/pages/SignUp";
 import {ChatsLayout} from "@/components/layout";
-import Chats from "@/pages/Chats";
-import Chat from "@/pages/Chat";
-import Onboarding from "./pages/Onboarding";
-import InviteRedirect from "./pages/InviteRedirect";
 import AuthLayout from "./components/layout/auth-layout";
+import { Suspense,lazy } from "react";
+import Loader from "./components/ui/loader";
+import Home from "@/pages/Home";
+const SignIn =  lazy(() => import('./pages/SignIn'));;
+const  SignUp =  lazy(() => import('./pages/SignUp'));
+const  Chats =  lazy(() => import('./pages/Chats'));
+const Chat =  lazy(() => import('./pages/Chat'));
+const Onboarding =  lazy(() => import('./pages/Onboarding'));;
+const InviteRedirect =  lazy(() => import('./pages/InviteRedirect'));;
 
 
 function App() {
   return (
     <Providers>
       <BrowserRouter>
+        <Suspense fallback={<Loader/>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/onboarding" element={<Onboarding/>} />
@@ -31,6 +34,7 @@ function App() {
           <Route path="/invite-link/:chatId/:inviteCode" element={<InviteRedirect/>}/>
           </Route>
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </Providers>
   );

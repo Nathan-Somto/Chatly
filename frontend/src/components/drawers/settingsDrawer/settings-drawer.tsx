@@ -36,11 +36,8 @@ const data = [
     icon: Trash,
   },
 ] as const;
-type Props = {
-  isOpen: boolean;
-  openDrawer: React.Dispatch<React.SetStateAction<boolean>>;
-};
-function SettingsDrawer({ isOpen, openDrawer }: Props) {
+
+function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
   const username = "@Nathan_Somto";
   const { theme, setTheme } = useTheme();
   const bio =
@@ -101,7 +98,7 @@ async function handleClick(item: typeof data[number]['text']){
     <DeleteModal open={modals.deleteAccount} setModals={setModals}/>
     <Sheet open={isOpen} onOpenChange={(open) => openDrawer(open)}>
       <SheetContent side={"left"} className="p-0">
-        <SheetHeader className="w-full py-4 px-6 text-center bg-brand-p1 text-white text-2xl">
+        <SheetHeader className="w-full py-2 h-14 px-6 text-center bg-brand-p1 dark:bg-[rgb(60,116,161)] text-gray-100 text-xl">
           Settings
         </SheetHeader>
         <div className="overflow-auto h-[calc(100%-64px)] relative">
@@ -139,7 +136,7 @@ async function handleClick(item: typeof data[number]['text']){
               handleClick={handleClick} 
               />
             ))}
-            <div className="flex items-center justify-between p-3 text-gray-600 font-medium">
+            <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-400 font-medium">
               <P className="flex items-center gap-5">
                 <span>
                   <MoonIcon />

@@ -105,7 +105,9 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
             user: {
               select : {
                 avatar : true,
-                username: true
+                username: true,
+                id:true,
+                lastSeen:true
               }
             }
           }

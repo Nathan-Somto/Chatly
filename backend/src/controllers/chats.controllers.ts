@@ -63,6 +63,7 @@ const getChatMessages = async (
                 username: true,
                 id: true,
                 Member: {
+                  take: 1,
                   where: {
                     chatId,
                   },
@@ -75,8 +76,8 @@ const getChatMessages = async (
           },
         },
       },
-    });
-
+         });
+         
     res.status(200).json({
       message: "chat's messages",
       data: messages ?? [],

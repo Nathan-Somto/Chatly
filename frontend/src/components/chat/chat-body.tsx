@@ -176,7 +176,7 @@ function ChatBody() {
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
-      className="mt-16 min-h-screen mb-16"
+      className="mt-[75px] min-h-screen mb-16"
     >
       {messageData.length == 0 ? (
         <div className="h-screen grid place-items-center content-center">

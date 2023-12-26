@@ -14,6 +14,7 @@ function ChatHeader() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const activeChat = useActiveChat((state) => state.activeChat);
+  console.log(activeChat);
   const members = useMemo(() => {
     return (
       activeChat?.groupInfo?.members
@@ -33,7 +34,7 @@ function ChatHeader() {
   return (
     <>
       <ProfileDrawer openDrawer={setOpenDrawer} isOpen={openDrawer} />
-      <header className="flex h-16 items-center justify-between px-4 py-5 bg-white dark:bg-gray-800 w-full lg:w-[calc(100%-350px)]  fixed top-0 z-[50] border-b">
+      <header className="flex h-[75px] items-center justify-between px-4 py-5 bg-white dark:bg-gray-800 w-full lg:w-[calc(100%-350px)]  fixed top-0 z-[50] border-b">
         <Button
           variant={"ghost"}
           className="lg:hidden"
@@ -42,10 +43,10 @@ function ChatHeader() {
         >
           <ChevronLeft />
         </Button>
-        <div className="flex max-lg:w-[60%] max-lg:flex-shrink-0 flex-row-reverse lg:gap-5 justify-between  lg:items-center lg:flex-row">
+        <div className="flex max-lg:w-[80%] max-lg:flex-shrink-0 flex-row-reverse lg:gap-5 justify-between  lg:items-center lg:flex-row">
           <figure
             onClick={isMobile ? handleDrawerOpen : void 0}
-            className="h-12 w-12 overflow-hidden text-slate-500 flex rounded-full items-center justify-center  "
+            className="h-12 max-lg:hover:opacity-70 max-lg:cursor-pointer w-12 max-lg:text-center  text-slate-500 flex  items-center justify-center  "
           >
             {activeChat?.groupInfo?.isGroup ? (
               <AvatarGroup members={activeChat?.groupInfo?.members ?? []} />
@@ -53,12 +54,12 @@ function ChatHeader() {
               <img
                 src={activeChat?.dmInfo?.avatar ?? ""}
                 alt="other user avatar"
-                className="h-full w-full"
+                className="h-full w-full rounded-full"
               />
             )}
           </figure>
-          <div className="text-center lg:text-left">
-            <H2 className="text-xl">
+          <div className="text-center lg:text-left max-lg:w-[calc(80%-12*0.25rem)] max-lg:flex-shrink-0">
+            <H2 className="text-xl truncate">
               {activeChat?.groupInfo?.isGroup
                 ? activeChat?.groupInfo?.name
                 : activeChat?.dmInfo?.username}
@@ -66,7 +67,9 @@ function ChatHeader() {
             <P
               className={cn(
                 "text-sm font-light",
-                isOnline && "text-brand-p1 dark:text-brand-p2"
+                isOnline &&
+                  !activeChat?.groupInfo?.isGroup &&
+                  "text-brand-p1 dark:text-brand-p2"
               )}
             >
               {activeChat?.groupInfo?.isGroup

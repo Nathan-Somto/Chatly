@@ -28,16 +28,15 @@ function ChatBox({
         id: members[0].user.id,
         lastSeen: members[0].user.lastSeen, 
       }
-      const groupInfo = isGroup ? null : {
+      const groupInfo = isGroup ?  {
         id,
         isGroup: true,
         members,
         name
-      } 
+      } : null;
         setActiveChat({
           dmInfo,
-          groupInfo,
-          messages: []
+          groupInfo
         })
         navigate(`/${user.id}/chats/${id}`)
     }

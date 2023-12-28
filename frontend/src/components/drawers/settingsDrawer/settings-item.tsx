@@ -35,10 +35,10 @@ type SettingsItemProps = {
         ) : (
           <Icon
             size={size}
-            className={cn("text-gray-600 dark:text-gray-400", danger && "text-red-600 dark:text-red-700")}
+            className={cn("text-gray-600 dark:text-gray-100", danger && "text-red-600 dark:text-red-700")}
           />
         )}
-        <P className={cn("text-gray-600 dark:text-gray-400 font-medium mt-0", danger && "text-red-600 dark:text-red-700")}>{text}</P>
+        <P className={cn("text-gray-600 dark:text-gray-100 font-medium mt-0", danger && "text-red-600 dark:text-red-700")}>{text}</P>
       </div>
     );
   }

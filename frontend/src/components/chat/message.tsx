@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import React from "react";
 import P from "../ui/typo/P";
 import { CheckCheckIcon, CheckIcon, MoreHorizontalIcon } from "lucide-react";
 

@@ -136,7 +136,7 @@ async function handleClick(item: typeof data[number]['text']){
               handleClick={handleClick} 
               />
             ))}
-            <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-400 font-medium">
+            <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-100 font-medium">
               <P className="flex items-center gap-5">
                 <span>
                   <MoonIcon />

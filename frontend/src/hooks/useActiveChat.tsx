@@ -27,8 +27,6 @@ export type ActiveChat = {
 interface ActiveChatState {
   activeChat: ActiveChat;
   setActiveChat: (data: ActiveChat) => void;
-  /* setMessages: (data: Message[]) => void;
-  addMessage: (data: Message) => void; */
   reset: () => void;
 }
 const initialChat: ActiveChat = null;
@@ -36,25 +34,6 @@ type Store = (set: (partial: ActiveChatState | Partial<ActiveChatState> | ((stat
 let store: Store = (set) => ({
   activeChat: initialChat,
   setActiveChat: (data: ActiveChat) => set(() => ({ activeChat: data })),
- /*  setMessages: (data: Message[]) =>
-    set((state) => ({
-      activeChat: {
-        dmInfo: state.activeChat?.dmInfo ?? null,
-        groupInfo: state.activeChat?.groupInfo ?? null,
-        messages: data,
-      },
-    })),
-  addMessage: (data: Message) =>
-    set((state) => ({
-      activeChat: {
-        dmInfo: state.activeChat?.dmInfo ?? null,
-        groupInfo: state.activeChat?.groupInfo ?? null,
-        messages:
-          state.activeChat?.messages !== undefined
-            ? [data, ...state.activeChat.messages]
-            : [data],
-      },
-    })), */
   reset: () => {
     set({ activeChat: initialChat });
   },

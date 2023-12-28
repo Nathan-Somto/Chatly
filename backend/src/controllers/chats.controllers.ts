@@ -186,11 +186,12 @@ const createGroupChat = async (
             create: members.map((member) => ({
               joinedAt: new Date(),
               user: { connect: { id: member.value } },
-              role: member.value === ownerId ? "OWNER" : "MEMBER",
-            })),
-          },
-        },
-      });
+              role: member.value === ownerId ? "OWNER" : "MEMBER"
+          }))
+        }
+      }
+    });
+
       res.status(201).json({
         message: "successfully created group chat!",
         groupChat,

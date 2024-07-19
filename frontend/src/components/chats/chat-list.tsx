@@ -2,6 +2,7 @@ import { avatar1, avatar2,avatar3 } from "@/assets"
 import { ChatBoxType } from "."
 import {v4 as uuidv4} from 'uuid'
 import ChatBox from "./chat-box"
+import ListContainer from "../common/list-container"
 const data: ChatBoxType[] = [
  
   {
@@ -93,11 +94,12 @@ const data: ChatBoxType[] = [
 ]
 function ChatList() {
   return (
-    <section className="mt-8 px-3 space-y-1 lg:h-[calc(100%-16*0.25rem)] lg:overflow-auto">
+    <ListContainer>
       {
         data.map((item) => <ChatBox {...item} key={item.id}/> )
       }
-    </section>
+    </ListContainer>
+  
   )
 }
 

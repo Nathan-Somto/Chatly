@@ -31,7 +31,7 @@ const navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
   const navigate = useNavigate();
   return (
-    <nav className="fixed top-0 left-0 right-0 max-w-[1440px] mx-auto overflow-hidden w-full flex items-center justify-between px-10 py-4 h-20 z-[99999] bg-white">
+    <nav className="fixed top-0 left-0 right-0 max-w-[1440px] mx-auto overflow-hidden w-full flex items-center justify-between px-10 py-4 h-20 z-[99999] bg-background">
       <img
         src={Logo}
         alt="chatly logo"
@@ -39,7 +39,7 @@ const navbar = () => {
       />
       <div
         className={clsx({
-          "gap-5 md:gap-0 transition-all ease-in duration-300 text-white justify-center items-center text-center text-2xl md:text-base md:text-black md:items-center md:justify-between md:flex-[0.8] fixed top-20 h-screen right-0 flex-col md:flex-row md:top-auto md:right-auto overflow-auto max-md:w-full  z-[20] md:relative md:flex":
+          "gap-5 md:gap-0 transition-all ease-in duration-300 dark:text-gray-50 justify-center items-center text-center text-2xl md:text-base md:text-black md:items-center md:justify-between md:flex-[0.8] fixed top-20 h-screen right-0 flex-col md:flex-row md:top-auto md:right-auto overflow-auto max-md:w-full  z-[20] md:relative md:flex":
             true,
           "flex max-md:bg-brand-p1 max-md:opacity-100": openMenu,
           "hidden max-md:bg-transparent max-md:opacity-0": !openMenu,

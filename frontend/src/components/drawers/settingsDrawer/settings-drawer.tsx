@@ -11,7 +11,7 @@ import { avatar2 } from "@/assets";
 import { v4 as uuidv4 } from "uuid";
 import GroupIcon from "./GroupIcon";
 import P from "@/components/ui/typo/P";
-import EditInput from "./edit-input";
+import EditInput from "../../common/edit-input";
 import SettingsItem from "./settings-item";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/wrappers/theme-provider";
@@ -41,7 +41,7 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
   const username = "@Nathan_Somto";
   const { theme, setTheme } = useTheme();
   const bio =
-    "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Perspiciatis facilis optio laborum. Pariatur, optio nam laudantium et iste iure debitis.";
+    "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Perspiciatis";
   const [values, setValue] = useState({
     username,
     bio,
@@ -92,9 +92,15 @@ async function handleClick(item: typeof data[number]['text']){
     // update profile store
     console.log(data);
   }
+  function setModal(value: boolean){
+    setModals((prevState) => ({
+      ...prevState,
+      groupChat: value,
+    }));
+  }
   return (
     <>
-    <GroupChatModal open={modals.groupChat}  setModals={setModals}/>
+    <GroupChatModal open={modals.groupChat}  setModal={setModal}/>
     <DeleteModal open={modals.deleteAccount} setModals={setModals}/>
     <Sheet open={isOpen} onOpenChange={(open) => openDrawer(open)}>
       <SheetContent side={"left"} className="p-0">
@@ -110,7 +116,7 @@ async function handleClick(item: typeof data[number]['text']){
               Save
             </Button>
           )}
-          <div className="px-5 space-y-5 mt-8">
+          <div className="px-5 space-y-5 mt-8 border-b-2 mb-5 pb-3">
             <img
               src={avatar2}
               alt="user's avatar"
@@ -120,6 +126,7 @@ async function handleClick(item: typeof data[number]['text']){
               label="Username"
               defaultValue={values.username}
               onChange={handleChange}
+              isLinkable
             />
             <EditInput
               label="Bio"
@@ -130,7 +137,8 @@ async function handleClick(item: typeof data[number]['text']){
           <div className="space-y-2 px-4 mt-10">
             {data.slice(0, 2).map((item) => (
               <SettingsItem 
-              text={item.text} 
+              text={item.text}
+              //@ts-ignore 
               Icon={item.icon} 
               key={uuidv4()}
               handleClick={handleClick} 
@@ -159,6 +167,7 @@ async function handleClick(item: typeof data[number]['text']){
             {data.slice(2, 4).map((item) => (
               <SettingsItem
                 text={item.text}
+                //@ts-ignore
                 Icon={item.icon}
                 key={uuidv4()}
                 danger={item.text === "Delete Account"}

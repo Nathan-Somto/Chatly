@@ -8,8 +8,9 @@ type Props = {
       avatar: string;
     };
   }[];
+  size?: number
 };
-function AvatarGroup({ members }: Props) {
+function AvatarGroup({ members, size=48 }: Props) {
   const avatarArr: Props["members"] =
     members.length < 3
       ? [
@@ -28,8 +29,12 @@ function AvatarGroup({ members }: Props) {
     1: "z-[2] -left-1 bottom-0",
     2: " z-[0] -right-1 bottom-0",
   };
+  const avatarSize = size ? size * 0.66 : 32
   return (
-    <figure className="flex items-center relative h-12 w-12">
+    <figure className={"flex items-center relative"} style={{
+      height: size,
+      width: size
+    }}>
       {avatarArr.map((item, index) => {
         if (item.user.username === "unknown") {
           return (
@@ -39,6 +44,10 @@ function AvatarGroup({ members }: Props) {
                 "h-8 w-8 absolute rounded-[50%] border-2 text-gray-400 bg-[#eee] p-1 border-slate-500 dark:border-slate-700",
                 positionMap[index as keyof typeof positionMap]
               )}
+              style={{
+                height: avatarSize,
+                width:avatarSize
+              }}
             />
           );
         }
@@ -47,9 +56,13 @@ function AvatarGroup({ members }: Props) {
           src={item.user.avatar}
           alt={`${item.user.username} avatar`}
           className={cn(
-            "h-8 w-8 absolute rounded-[50%] border-2 border-slate-500 p-0 dark:border-slate-700",
+            "absolute rounded-[50%] border-2 border-slate-500 p-0 dark:border-slate-700",
             positionMap[index as keyof typeof positionMap]
           )}
+          style={{
+            height: avatarSize,
+            width:avatarSize
+          }}
         />)
       })}
     </figure>

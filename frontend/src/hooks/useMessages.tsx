@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
+import { avatar1 } from "@/assets";
 const messages: Message["message"][] = [
     {
       Sender: {
@@ -22,6 +23,8 @@ const messages: Message["message"][] = [
       type: "TEXT",
       createdAt: new Date("2023-01-01T12:00:00"),
       chatId: "dm1",
+      isReply: false,
+      parentMessage: null
     },
     {
       Sender: {
@@ -45,6 +48,8 @@ const messages: Message["message"][] = [
       type: "IMAGE",
       createdAt: new Date("2023-03-01T12:05:00"),
       chatId: "dm1",
+      isReply: false,
+      parentMessage: null
     },
     {
       Sender: {
@@ -67,6 +72,8 @@ const messages: Message["message"][] = [
       type: "TEXT",
       createdAt: new Date("2023-08-01T12:05:00"),
       chatId: "dm1",
+      isReply: false,
+      parentMessage: null
     },
     {
       Sender: {
@@ -88,6 +95,8 @@ const messages: Message["message"][] = [
       type: "TEXT",
       createdAt: new Date("2023-08-01T12:05:00"),
       chatId: "dm1",
+      isReply: false,
+      parentMessage: null
     },
     {
       Sender: {
@@ -110,6 +119,8 @@ const messages: Message["message"][] = [
       type: "TEXT",
       createdAt: new Date("2023-08-01T12:05:00"),
       chatId: "dm1",
+      isReply: false,
+      parentMessage: null
     },
     
     {
@@ -132,6 +143,8 @@ const messages: Message["message"][] = [
       type: "TEXT",
       createdAt: new Date("2023-08-01T12:05:00"),
       chatId: "dm1",
+      isReply: false,
+      parentMessage: null
     },
     {
       Sender: {
@@ -154,6 +167,60 @@ const messages: Message["message"][] = [
       type: "TEXT",
       createdAt: new Date("2023-08-01T12:05:00"),
       chatId: "dm1",
+      isReply: false,
+      parentMessage: null
+    },
+    {
+      Sender: {
+        id: "user2",
+        username: "User2",
+        avatar:
+         "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MXw0Mzg2NzUyfHxlbnwwfHx8fHw%3D",
+        Member: [
+          {
+            role: "MEMBER",
+          },
+        ],
+      },
+      id: "1234567",
+      body: "Can you share your instagram account",
+      senderId: "user2",
+      isEditted: false,
+      readByIds: [],
+      resourceUrl: null,
+      type: "TEXT",
+      createdAt: new Date("2023-08-01T12:05:00"),
+      chatId: "dm1",
+      isReply: false,
+      parentMessage: null
+    },
+    {
+      Sender: {
+        id: "user1",
+        username: "User1",
+        avatar:
+          "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MXw0Mzg2NzUyfHxlbnwwfHx8fHw%3D",
+        Member: [
+          {
+            role: "MEMBER",
+          },
+        ],
+      },
+      id: uuidv4(),
+      body: "here you go\nhttps://www.instagram.com",
+      senderId: "user1",
+      isEditted: false,
+      readByIds: [],
+      resourceUrl: null,
+      type: "TEXT",
+      createdAt: new Date("2023-08-01T12:05:00"),
+      chatId: "dm1",
+      isReply: true,
+      parentMessage:{
+        body: "Can you share your instagram account",
+        avatar: avatar1,
+        username: "User2"
+      }
     },
   ];
 type ModifiedMessage = Message["message"]& 

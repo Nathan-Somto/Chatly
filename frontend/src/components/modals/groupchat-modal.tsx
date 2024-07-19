@@ -8,14 +8,12 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import H2 from "../ui/typo/H2";
 import { Button } from "../ui/button";
+import GroupIcon from "../drawers/settingsDrawer/GroupIcon";
+import { customReactSelectStyles } from "@/constants";
 type Props = {
   open: boolean;
-  setModals: React.Dispatch<
-    React.SetStateAction<{
-      groupChat: boolean;
-      deleteAccount: boolean;
-    }>
-  >;
+  setModal: (value: boolean, isGroup: boolean) => void;
+  isCreateGroup?: boolean;
 };
 const memberOptions = [
   {
@@ -55,69 +53,73 @@ const memberOptions = [
     value: uuidv4(),
   },
 ] as const;
-const schema = z.object({
-  name: z.string(),
-  description: z.string().min(8).max(500).optional(),
-  members: z
-    .array(
-      z.object({
-        label: z.string(),
-        value: z.string(),
-      })
-    )
-    .min(2).readonly(),
+const AddMembersSchema = z.object({
+  members: z.array(
+    z.object({
+      label: z.string(),
+      value: z.string(),
+    })
+  ).min(2).readonly(),
 });
-type SchemaType = z.infer<typeof schema>;
-function GroupChatModal({ open, setModals }: Props) {
+
+const createGroupChatSchema = AddMembersSchema.extend({
+  name: z.string(),
+  description: z.string().min(8, "Description must be at least 8 characters").max(500).optional(),
+});
+
+type AddMembersSchemaType = z.infer<typeof AddMembersSchema>;
+type CreateGroupSchemaType = z.infer<typeof createGroupChatSchema>;
+
+
+function GroupChatModal({ open, setModal, isCreateGroup=true }: Props) {
+  const schema = isCreateGroup ? createGroupChatSchema : AddMembersSchema;
   const {
     register,
     formState: { errors },
     handleSubmit,
     setValue,
     watch,
-  } = useForm<SchemaType>({
+  } = useForm<AddMembersSchemaType | CreateGroupSchemaType>({
     resolver: zodResolver(schema),
   });
   const members = watch("members");
-  function onSubmit(data: SchemaType) {
+  function onSubmit(data: AddMembersSchemaType | CreateGroupSchemaType) {
     console.log(data);
-    setModals((prevState) => ({
-      ...prevState,
-      groupChat: false,
-    }));
   }
   return (
     <Dialog
       open={open}
       onOpenChange={(open) =>
-        setModals((prevState) => ({
-          ...prevState,
-          groupChat: open,
-        }))
+        setModal(open, true)
       }
     >
       <DialogContent className="h-[450px] overflow-auto  pb-5">
-        <DialogHeader className="mt-2">
+        <DialogHeader className="mt-2 flex items-center gap-x-2 flex-row">
           {" "}
-          <H2 className="text-2xl">New Group Chat</H2>
+          <GroupIcon size={28}/>
+          <H2 className="text-2xl">{isCreateGroup ? "New Group Chat" : "Add Members"}</H2>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <InputGroup
-            label={"name"}
-            errors={errors}
-            id={"name"}
-            register={register}
-            type="text"
-          />
-          <TextAreaGroup
-            label={"description"}
-            errors={errors}
-            id={"description"}
-            register={register}
-            height={10}
-            width={50}
-            className="max-h-[100px]"
-          />
+        {isCreateGroup && (
+            <>
+              <InputGroup
+                label={"name"}
+                errors={errors}
+                id={"name"}
+                register={register}
+                type="text"
+              />
+              <TextAreaGroup
+                label={"description"}
+                errors={errors}
+                id={"description"}
+                register={register}
+                height={10}
+                width={50}
+                className="max-h-[100px]"
+              />
+            </>
+          )}
           <div>
             <label htmlFor="members">Members</label>
             <Select
@@ -127,10 +129,12 @@ function GroupChatModal({ open, setModals }: Props) {
               options={memberOptions}
               onChange={(value) => setValue("members", value)}
               value={members}
+              className="text-foreground"
+              styles={customReactSelectStyles} 
             />
           </div>
           <div className="flex items-center justify-end">
-            <Button className="ml-auto px-8 py-3">Create</Button>
+            <Button className="ml-auto px-8 py-3">{isCreateGroup ? "Create" : "Add"}</Button>
           </div>
         </form>
       </DialogContent>

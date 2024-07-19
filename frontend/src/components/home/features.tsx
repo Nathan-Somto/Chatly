@@ -30,13 +30,13 @@ const data = [
 function Features() {
   return (
     <section className="" id="features">
-      <H2  data-aos="fade-up" className="text-center text-[#1B1C20] xl:text-5xl/normal text-4xl my-16">What Chatly Offers?</H2>
+      <H2  data-aos="fade-up" className="text-center text-[#1B1C20] dark:text-gray-200 xl:text-5xl/normal text-4xl my-16">What Chatly Offers?</H2>
       {data.map((item, index) => (
         <article
           key={item.id}
           className={cn(
-            "flex px-10 mt-8 lg:gap-[5%] max-w-[1440px] items-center lg:justify-around mx-auto py-8 lg:py-16 text-center lg:text-left bg-[#F8F8FA] lg:flex-row flex-col",
-            index % 2 !== 0 && "lg:flex-row-reverse bg-white"
+            "flex px-10 mt-8 lg:gap-[5%] max-w-[1440px] items-center lg:justify-around mx-auto py-8 lg:py-16 text-center lg:text-left dark:bg-[#1e1e1f] bg-gray-100 lg:flex-row flex-col",
+            index % 2 !== 0 && "lg:flex-row-reverse bg-white dark:bg-background"
           )}
         >
           <figure data-aos={index % 2 === 0 ? "slide-right": "slide-left"} className= "w-[22rem] h-[15rem] sm:w-[32rem]  sm:h-[22rem] flex-shrink-0">
@@ -47,10 +47,10 @@ function Features() {
             />
           </figure>
           <div   data-aos= {index % 2 === 0 ? "slide-left": "slide-right"} data-aos-delay={200} className={"lg:w-[500px] w-full max-w-[500px] mt-12 lg:mt-0"}>
-            <H2 className="text-[#1B1C20] text-4xl lg:mb-3 xl:mb-4 w-[80%] mb-5 mx-auto lg:mx-0 lg:w-[90%] xl:text-5xl/normal">
+            <H2 className="text-[#1B1C20] dark:text-gray-200 text-4xl lg:mb-3 xl:mb-4 w-[80%] mb-5 mx-auto lg:mx-0 lg:w-[90%] xl:text-5xl/normal">
               {item.heading2}
             </H2>
-            <Large className="w-[90%] mx-auto text-base xl:text-lg lg:mx-0 text-[#383A47] font-medium">
+            <Large className="w-[90%] mx-auto text-base dark:text-gray-400 xl:text-lg lg:mx-0 text-[#383A47] font-medium">
               {item.para}
             </Large>
           </div>

@@ -10,6 +10,7 @@ const SignIn =  lazy(() => import('./pages/SignIn'));;
 const  SignUp =  lazy(() => import('./pages/SignUp'));
 const  Chats =  lazy(() => import('./pages/Chats'));
 const Chat =  lazy(() => import('./pages/Chat'));
+const Discover = lazy(() => import('./pages/Discover'));
 const Onboarding =  lazy(() => import('./pages/Onboarding'));;
 const InviteRedirect =  lazy(() => import('./pages/InviteRedirect'));;
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/sign-up/*" element={<SignUp/>}/>
           </Route>
           <Route element={<ProtectedRoute/>}>
+          <Route path="/discover" element={<Discover/>}/>
           <Route path="/:userId/chats" element={<ChatsLayout/>}>
             <Route  index element={<Chats/>} />
             <Route path=":chatId" element={<Chat/>}/>

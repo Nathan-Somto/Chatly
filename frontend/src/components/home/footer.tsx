@@ -59,7 +59,7 @@ function Footer() {
   return (
     <>
       <div id="footer-top" className="max-w-[1440px] mx-auto my-4 px-10 py-10 text-center">
-        <H2 data-aos="fade-up" data-aos-anchor="#footer-top" className="max-w-[46rem] mx-auto mb-9 text-[#1B1C20] xl:text-5xl/normal text-4xl">
+        <H2 data-aos="fade-up" data-aos-anchor="#footer-top" className="max-w-[46rem] mx-auto mb-9 text-[#1B1C20] dark:text-gray-200 xl:text-5xl/normal text-4xl">
           Ready to Start Chatting about with Friends and Family
         </H2>
         <Button data-aos="zoom-in" data-aos-delay={300}  data-aos-anchor="#footer-top" className="mx-auto lg:text-lg text-white">Start Chatting now!</Button>

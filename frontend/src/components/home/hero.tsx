@@ -19,7 +19,7 @@ function Hero() {
         <H1 className="xl:text-6xl text-4xl sm:text-5xl max-sm:w-[300px] max-lg:max-w-[600px] w-full mb-4 lg:mb-6 lg:text-[42px]">
           Start chatting with friends, family, anytime, anywhere.
         </H1>
-        <P className="text-[#383A47] opacity-80 mb-4 w-[90%]">
+        <P className="text-[#383A47] dark:text-gray-300 opacity-80 mb-4 w-[90%]">
           Connecting you with friends and family, bringing the fun to every chat
           anytime, anywhere! Start your amazing conversations now.
         </P>

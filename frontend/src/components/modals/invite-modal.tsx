@@ -11,19 +11,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import toast from "react-hot-toast";
 
-
-export function DialogCloseButton() {
+type Props = {
+  setVisiblity: (value: boolean) => void;
+  open: boolean;
+  inviteLink: string;
+}
+export function InviteModal({open, inviteLink, setVisiblity}: Props) {
+  function handleCopy(){
+    navigator.clipboard.writeText(inviteLink)
+    toast.success('successfully copied link');
+  }
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">Share</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={open => setVisiblity(open)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share link</DialogTitle>
           <DialogDescription>
-            Anyone who has this link will be able to view this.
+            Anyone who has this link will be able to join this group.
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-2">
@@ -33,11 +39,12 @@ export function DialogCloseButton() {
             </label>
             <input
               id="link"
-              defaultValue="https://ui.shadcn.com/docs/installation"
+              defaultValue={"https://"+inviteLink}
               readOnly
+              className="dark:text-gray-950 underline  bg-gray-100 dark:bg-gray-300 rounded-lg p-2 w-full"
             />
           </div>
-          <Button type="submit" size="sm" className="px-3">
+          <Button type="submit" size="sm" onClick={handleCopy} className="px-3">
             <span className="sr-only">Copy</span>
             <CopyIcon className="h-4 w-4" />
           </Button>

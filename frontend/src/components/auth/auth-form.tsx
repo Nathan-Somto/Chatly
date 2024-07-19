@@ -5,8 +5,8 @@ import { Button } from "../ui/button";
 import TextAreaGroup from "../ui/textarea-group";
 import toast from "react-hot-toast";
 import * as z from "zod";
-import { User } from "lucide-react";
-import { useState } from "react";
+import { CameraIcon, ImagePlusIcon, User } from "lucide-react";
+import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 type Props = {
   username: string;
@@ -21,7 +21,8 @@ const schema = z.object({
 });
 type SchemaType = z.infer<typeof schema>;
 function AuthForm({ username, bio, avatar }: Props) {
-  const [files, setFiles] = useState<string>('');
+  const imageRef = useRef<null | HTMLInputElement>(null);
+  const [files, setFiles] = useState<string>("");
   const {
     handleSubmit,
     register,
@@ -50,13 +51,13 @@ function AuthForm({ username, bio, avatar }: Props) {
     e.preventDefault();
     const file = new FileReader();
     if (e.target.files && e.target.files.length > 0) {
-      if (!e.target.files[0].type.includes("image")){
+      if (!e.target.files[0].type.includes("image")) {
         toast.error("only image files are allowed!");
         return;
-      };
+      }
       //setFiles(Array.from(e.target.files));
       file.onload = async (fileEvt) => {
-        setFiles(fileEvt?.target?.result?.toString() ?? "")
+        setFiles(fileEvt?.target?.result?.toString() ?? "");
       };
       file.readAsDataURL(e.target.files[0]);
     }
@@ -64,24 +65,35 @@ function AuthForm({ username, bio, avatar }: Props) {
 
   return (
     <form
-      className="space-y-6 text-sm md:text-lg"
+      className="space-y-4 text-sm md:text-lg"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <figure className="flex items-center gap-5  text-sm flex-wrap flex-shrink-0">
-        {files || avatar.length > 0  ? (
+      <figure className="flex items-center gap-2 mx-auto relative h-24 w-24 text-sm flex-wrap justify-center flex-shrink-0">
+        {files || avatar.length > 0 ? (
           <img
             src={files || avatar}
             alt="avatar preview"
-            className="ring-2 h-16 w-16 ring-brand-p1 rounded-[50%] object-cover"
+            className="ring-2 h-full w-full ring-brand-p1 rounded-[50%] object-cover"
           />
         ) : (
-          <User className="ring-2 h-16 w-16 ring-brand-p1 rounded-[50%] text-gray-500 p-2" />
+          <User className="ring-2 h-full w-full ring-brand-p1 rounded-[50%] text-gray-500 p-2" />
         )}
+        <Button
+          type="button"
+          className="absolute -bottom-2 h-9 w-9 z-[3] right-0"
+          variant="outline"
+          onClick={() => imageRef.current?.click()}
+        >
+          <ImagePlusIcon className="h-6 w-6 flex-shrink-0" />
+          <span className="sr-only">Upload Image</span>
+        </Button>
         <input
           type="file"
           id="avatar"
           onChange={handleImage}
           accept="image/*"
+          hidden
+          ref={imageRef}
           max={1}
         />
       </figure>
@@ -99,11 +111,11 @@ function AuthForm({ username, bio, avatar }: Props) {
         height={30}
         width={30}
         register={register}
-        className={"w-full h-[200px]"}
-      />     
-        <Button className="min-w-full text-gray-100"  size="lg">
-          Save
-        </Button>
+        className={"w-full h-[100px]"}
+      />
+      <Button className="min-w-full text-gray-100" size="lg">
+        Save
+      </Button>
     </form>
   );
 }

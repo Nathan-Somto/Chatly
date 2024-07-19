@@ -3,7 +3,7 @@ import P from "../ui/typo/P";
 import H2 from "../ui/typo/H2";
 import { Button } from "../ui/button";
 import { ChevronLeft, MoreHorizontal } from "lucide-react";
-import AvatarGroup from "../chats/avatar-group";
+import AvatarGroup from "../common/avatar-group";
 import { useActiveChat } from "@/hooks/useActiveChat";
 import { useMemo, useState } from "react";
 import { cn, formatLastSeen } from "@/lib/utils";
@@ -34,7 +34,7 @@ function ChatHeader() {
   return (
     <>
       <ProfileDrawer openDrawer={setOpenDrawer} isOpen={openDrawer} />
-      <header className="flex h-[75px] items-center justify-between px-4 py-5 bg-white dark:bg-gray-800 w-full lg:w-[calc(100%-350px)]  fixed top-0 z-[50] border-b">
+      <header className="flex h-[75px] items-center justify-between px-4 py-5 bg-white dark:bg-[#17191C] w-full lg:w-[calc(100%-350px)]  fixed top-0 z-[50] border-b">
         <Button
           variant={"ghost"}
           className="lg:hidden"

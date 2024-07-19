@@ -13,7 +13,7 @@ const Home = () => {
   }, []);
   console.log(renderCount.current);
   return (
-    <div className="bg-white text-black/90 overflow-x-hidden">
+    <div className="bg-background text-black/90 dark:text-gray-50 overflow-x-hidden">
       <Navbar />
       <Hero />
       <main>

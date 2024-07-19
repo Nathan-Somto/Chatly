@@ -18,7 +18,7 @@ function Sidebar() {
     const isChatPage = typeof chatId !== 'undefined'
   return (
     <>
-   <aside className={cn("lg:w-[350px] py-6 lg:fixed lg:left-0 lg:top-0 w-full bg-white dark:bg-gray-900 border-r min-h-screen", isChatPage&& "hidden lg:block")}>
+   <aside className={cn("lg:w-[350px] py-6 lg:fixed lg:left-0 lg:top-0 w-full bg-gray-100 dark:bg-[#17191C] border-r min-h-screen", isChatPage&& "hidden lg:block")}>
     <SidebarHeader
      openDrawer={setOpenSettings}
      handleSearch={handleSearch}

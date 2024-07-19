@@ -21,7 +21,7 @@ type SettingsItemProps = {
     return (
       <div
         className="p-3 rounded-lg  w-full  flex items-center gap-5
-      dark:hover:bg-gray-700 cursor-pointer hover:bg-gray-300"
+      dark:hover:bg-[#272A20] cursor-pointer hover:bg-gray-300"
         role="button"
         onClick={() => (handleClick ? handleClick(text) : null)}
       >

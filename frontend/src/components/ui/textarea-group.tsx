@@ -43,7 +43,7 @@ function TextAreaGroup<T extends FieldValues | {[id:string]: any}, U extends str
           disabled={disabled}
           {...register(id as unknown as Path<T>, { required })}
           className={cn(
-            `block w-full px-3 resize-none rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-p2 sm:text-sm sm:leading-6 dark:bg-gray-900`,
+            `block w-full px-3 resize-none rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-p2 sm:text-sm sm:leading-6 bg-input`,
             errors[id] && "focus:ring-rose-500",
             disabled && "opacity-50 cursor-default",
             resize && "resize",

@@ -1,12 +1,13 @@
-import { ChevronLeft, GlobeIcon, Loader, LucideUsers2, MenuIcon, SearchIcon, UserPlus2, Users2 } from "lucide-react";
+import { ChevronLeft, GlobeIcon, Loader, LucideUsers2, SearchIcon, UserPlus2 } from "lucide-react";
 import { Button } from "../ui/button";
 import React, { useState } from "react";
-import { avatar3 } from "@/assets";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import GroupIcon from "../drawers/settingsDrawer/GroupIcon";
 import { useNavigate } from "react-router-dom";
 import GroupChatModal from "../modals/groupchat-modal";
 import { DmModal } from "../modals/dm-modal";
+import { useProfileStore } from "@/hooks/useProfileStore";
+import AvatarUser from "../common/avatar-user";
 type Props = {
   openDrawer: (value: boolean) => void;
   handleSearch: (keywords: string) => Promise<void>;
@@ -15,9 +16,7 @@ type Props = {
 };
 function SidebarHeader({ openDrawer, handleSearch, showBack, goBackToChats }: Props) {
   const [keywords, setKeywords] = useState<string>("");
-  const user = {
-    avatar:avatar3
-  }
+  const {profile} = useProfileStore();
   const [isLoading, setIsLoading] = useState(false);
   function toggleLoading(value: boolean) {
     setIsLoading(value);
@@ -53,9 +52,9 @@ function SidebarHeader({ openDrawer, handleSearch, showBack, goBackToChats }: Pr
       <Button
         onClick={() => openDrawer(true)}
         variant={"ghost"}
-        className="p-0  text-gray-500 rounded-[50%] h-12 w-12 lg:h-10 lg:w-10 flex-shrink-0 overflow-hidden hover:bg-transparent hover:text-gray-500 border-2 border-slate-500  dark:border-slate-700"
+        className="p-0  text-gray-500 border-none  h-fit w-fit flex-shrink-0  hover:bg-transparent hover:opacity-50 border-2 border-slate-500  dark:border-slate-700"
       >
-       <img src={user.avatar} alt="user's avatar" className="h-full w-full object-cover"/>
+       <AvatarUser src={profile?.avatar ?? ''} size={40}/>
       </Button>
       )}
       <form onSubmit={handleSubmit} className=" w-[calc(90%-96px)] lg:w-[70%] flex-shrink-0">

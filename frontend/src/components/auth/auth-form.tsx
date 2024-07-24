@@ -5,13 +5,22 @@ import { Button } from "../ui/button";
 import TextAreaGroup from "../ui/textarea-group";
 import toast from "react-hot-toast";
 import * as z from "zod";
-import { CameraIcon, ImagePlusIcon, User } from "lucide-react";
+import { ImagePlusIcon} from "lucide-react";
 import { useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutate } from "@/hooks/query/useMutate";
+import { useNavigate } from "react-router-dom";
+import { useProfileStore } from "@/hooks/useProfileStore";
+import { AxiosResponse } from "axios";
+import { displayError, uploadFile } from "@/lib/utils";
+import AvatarUser from "../common/avatar-user";
 type Props = {
-  username: string;
-  bio: string;
-  avatar: string;
+    username: string;
+    bio: string;
+    avatar: string;
+    id: string;
+    clerkId: string;
+    isOnboarded: boolean;
+    email: string;
   handleModalClose?: () => void;
 };
 const schema = z.object({
@@ -20,9 +29,12 @@ const schema = z.object({
   avatar: z.string(),
 });
 type SchemaType = z.infer<typeof schema>;
-function AuthForm({ username, bio, avatar }: Props) {
+function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
+  const navigate = useNavigate()
   const imageRef = useRef<null | HTMLInputElement>(null);
+  const {setProfile} = useProfileStore();
   const [files, setFiles] = useState<string>("");
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   const {
     handleSubmit,
     register,
@@ -35,18 +47,68 @@ function AuthForm({ username, bio, avatar }: Props) {
       avatar,
     },
   });
-  /* const mutatation = useMutation({
-    mutationFn: (data) =>{
-
-    }
-  }) */
-  function onSubmit(data: SchemaType) {
-    data.avatar = files;
-    console.log(data);
-    setTimeout(() => {
-      toast.success("successfully submitted user data!");
-    }, 3000);
+ function onSuccess(response: AxiosResponse<any, any>) {
+  console.log("response: ", response)
+    const user = response.data.user;
+    setProfile({
+      avatar: user.avatar,
+      bio: user.bio,
+      clerkId: user.clerkId,
+      email: user.email,
+      id: user.id,
+      isOnboarded: user.isOnboarded,
+      username: user.username
+    });
+    navigate(`/${user.clerkId}/chats`);
+    console.log(response);
   }
+  const {mutate: postMutate, isPending: isPostPending} = useMutate({
+    defaultMessage: "Failed to create user profile!",
+    method: "post",
+    route: "/users",
+    onSuccess
+  })
+  const {mutate: putMutate, isPending: isPutPending} = useMutate({
+    defaultMessage: "Failed to create user profile!",
+    method: "patch",
+    route: `/users`,
+    onSuccess
+  })
+  
+  async function onSubmit(data: SchemaType) {
+    setIsUploading(true);
+    try {
+      if (files && imageRef.current && imageRef.current.files) {
+        console.log("the file: ",imageRef.current.files[0]);
+        const uploadedUrl = await uploadFile(imageRef.current.files[0]);
+        if (uploadedUrl) {
+          data.avatar = uploadedUrl;
+        }
+      }
+      setIsUploading(false);
+      console.log("on submit data: ",data);
+      if(id === ''){
+        postMutate({
+          ...data,
+          email,
+          clerkId,
+          isOnboarded: true
+        })
+      }
+      else {
+        putMutate({
+          ...data,
+          email,
+          clerkId,
+          isOnboarded: true
+        })
+      }
+    }
+    catch(err){
+      toast.error(displayError(err, 'failed to create user profile!'))
+    }
+  }
+  const disableBtn = isPostPending || isPutPending || isUploading;
   function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     e.preventDefault();
     const file = new FileReader();
@@ -69,15 +131,7 @@ function AuthForm({ username, bio, avatar }: Props) {
       onSubmit={handleSubmit(onSubmit)}
     >
       <figure className="flex items-center gap-2 mx-auto relative h-24 w-24 text-sm flex-wrap justify-center flex-shrink-0">
-        {files || avatar.length > 0 ? (
-          <img
-            src={files || avatar}
-            alt="avatar preview"
-            className="ring-2 h-full w-full ring-brand-p1 rounded-[50%] object-cover"
-          />
-        ) : (
-          <User className="ring-2 h-full w-full ring-brand-p1 rounded-[50%] text-gray-500 p-2" />
-        )}
+       <AvatarUser src={files || avatar} alt="avatar preview" size={96} className="ring-brand-p2 ring-2"/>
         <Button
           type="button"
           className="absolute -bottom-2 h-9 w-9 z-[3] right-0"
@@ -90,6 +144,7 @@ function AuthForm({ username, bio, avatar }: Props) {
         <input
           type="file"
           id="avatar"
+          name="avatar"
           onChange={handleImage}
           accept="image/*"
           hidden
@@ -113,8 +168,8 @@ function AuthForm({ username, bio, avatar }: Props) {
         register={register}
         className={"w-full h-[100px]"}
       />
-      <Button className="min-w-full text-gray-100" size="lg">
-        Save
+      <Button className="min-w-full text-gray-100" size="lg" disabled={disableBtn}>
+        {disableBtn ? "Creating..." :"Save"}
       </Button>
     </form>
   );

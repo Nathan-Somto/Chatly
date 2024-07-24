@@ -4,10 +4,10 @@ import {
   LogOutIcon,
   MoonIcon,
   Trash,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { avatar2 } from "@/assets";
+import { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import GroupIcon from "./GroupIcon";
 import P from "@/components/ui/typo/P";
@@ -18,6 +18,9 @@ import { useTheme } from "@/components/wrappers/theme-provider";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "@/components/modals/delete-modal";
 import GroupChatModal from "@/components/modals/groupchat-modal";
+import { useProfileStore } from "@/hooks/useProfileStore";
+import AvatarUser from "@/components/common/avatar-user";
+import { useAuth } from "@clerk/clerk-react";
 const data = [
   {
     text: "New Group chat",
@@ -38,22 +41,25 @@ const data = [
 ] as const;
 
 function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
-  const username = "@Nathan_Somto";
+  const {signOut} = useAuth();
+  const {profile, removeProfile} = useProfileStore();
   const { theme, setTheme } = useTheme();
-  const bio =
-    "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Perspiciatis";
+  const username = useRef(profile?.username);
+  const bio = useRef(profile?.bio);
   const [values, setValue] = useState({
-    username,
-    bio,
+    username:('@' + profile?.username) || '',
+    bio: profile?.bio || '',
   });
   const [modals, setModals] = useState({
     groupChat:false,
     deleteAccount:false
   })
-  const displaySaveButton = username !== values.username || bio !== values.bio;
+  const displaySaveButton = username.current !== values.username.slice(1) || bio.current !== values.bio;
   const navigate = useNavigate();
   async function handleLogout(){
     // handle clerk logout
+    await signOut();
+    removeProfile();
     // remove profile from store.
     // navigate to sign-in
     navigate('/sign-in');
@@ -117,11 +123,10 @@ async function handleClick(item: typeof data[number]['text']){
             </Button>
           )}
           <div className="px-5 space-y-5 mt-8 border-b-2 mb-5 pb-3">
-            <img
-              src={avatar2}
-              alt="user's avatar"
-              className="h-32 w-32 rounded-[50%] mx-auto object-cover border-2 border-slate-500  dark:border-slate-700"
-            />
+            <AvatarUser 
+            src={profile?.avatar ?? null}
+            size={128}
+            />        
             <EditInput
               label="Username"
               defaultValue={values.username}

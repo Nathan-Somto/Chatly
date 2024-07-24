@@ -1,32 +1,10 @@
 import { Logo } from "@/assets";
 import { Link, useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import clsx from "clsx";
-const linkData = [
-  {
-    text: "features",
-    link: "#features",
-    id: uuidv4(),
-  },
-  {
-    text: "about",
-    link: "#",
-    id: uuidv4(),
-  },
-  {
-    text: "blog",
-    link: "#",
-    id: uuidv4(),
-  },
-  {
-    text: "contact",
-    link: "#footer",
-    id: uuidv4(),
-  },
-];
+import { linkData } from "@/constants";
 const navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
   const navigate = useNavigate();

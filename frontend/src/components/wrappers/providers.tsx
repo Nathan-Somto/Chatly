@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/wrappers/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 type TProvidersProps = {
   children: React.ReactNode;
 };
@@ -22,8 +23,9 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 function providers({ children }: TProvidersProps) {
+  const navigate = useNavigate()
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} navigate={(to) => navigate(to)} afterSignInUrl="/chats-redirect" afterSignUpUrl="/onboarding" signUpUrl="/sign-up/*" signInUrl="/sign-in/*">
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <>

@@ -11,18 +11,19 @@ const  SignUp =  lazy(() => import('./pages/SignUp'));
 const  Chats =  lazy(() => import('./pages/Chats'));
 const Chat =  lazy(() => import('./pages/Chat'));
 const Discover = lazy(() => import('./pages/Discover'));
-const Onboarding =  lazy(() => import('./pages/Onboarding'));;
-const InviteRedirect =  lazy(() => import('./pages/InviteRedirect'));;
-
+const Onboarding =  lazy(() => import('./pages/Onboarding'));
+const InviteRedirect =  lazy(() => import('./pages/InviteRedirect'));
+const ChatsRedirect = lazy(() => import('./pages/ChatsRedirect'))
 
 function App() {
   return (
-    <Providers>
       <BrowserRouter>
+    <Providers>
         <Suspense fallback={<Loader/>}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/onboarding" element={<Onboarding/>} />
+          <Route path="/chats-redirect/*" element={<ChatsRedirect/>}/>
           <Route element={<AuthLayout/>}>
           <Route path="/sign-in/*" element={<SignIn/>}/>
           <Route path="/sign-up/*" element={<SignUp/>}/>
@@ -37,8 +38,8 @@ function App() {
           </Route>
         </Routes>
         </Suspense>
-      </BrowserRouter>
     </Providers>
+      </BrowserRouter>
   );
 }
 

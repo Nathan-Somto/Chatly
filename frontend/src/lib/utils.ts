@@ -1,6 +1,9 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import {v4 as uuidv4} from 'uuid'
+import { AxiosError } from "axios";
+import { mainApi } from "./axios";
+import toast from "react-hot-toast";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -42,4 +45,42 @@ export function formatLastSeen (lastSeen: Date | string | number): ({
 export async function findConversation(userId: string){
   // checks the backe
   return new Promise((resolve) => setTimeout(() => resolve(uuidv4()),3000));
+}
+export async function uploadFile(file: File): Promise<string | null> {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const response = await mainApi.post("/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data.url;
+  } catch (error) {
+    toast.error("Failed to upload image!");
+    return null;
+  }
+}
+export function displayError( error: unknown, defaultMessage: string = "An error occurred"): string {
+let description = defaultMessage;
+
+if (error instanceof AxiosError && error.response?.data.message) {
+    description = error.response.data.message;
+}
+else if (error instanceof Error) {
+    description = error.message;
+}
+else if(typeof error === "string"){
+    description = error;
+}
+
+  return description
+
+}
+export function generateUsername(name: string){
+  let digits = '';
+  for (let i = 0; i < 3; i++){
+    digits += Math.floor(Math.random() * 10).toString()
+  }
+  return name+digits;
 }

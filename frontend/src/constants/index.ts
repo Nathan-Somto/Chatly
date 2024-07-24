@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 export const clerkConfig = (theme: string) => {
  return {
     variables: {
@@ -26,3 +27,26 @@ export const customReactSelectStyles = {
     color: 'hsl(var(--foreground))',
   }),
 };
+
+export const linkData = [
+  {
+    text: "features",
+    link: "#features",
+    id: uuidv4(),
+  },
+  {
+    text: "about",
+    link: "#",
+    id: uuidv4(),
+  },
+  {
+    text: "blog",
+    link: "#",
+    id: uuidv4(),
+  },
+  {
+    text: "contact",
+    link: "#footer",
+    id: uuidv4(),
+  },
+];

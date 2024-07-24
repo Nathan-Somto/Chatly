@@ -74,3 +74,14 @@
     @apply bg-background text-foreground;
   }
 }
+@keyframes zoom-in-out {
+  0%{
+    scale: 1
+  }
+  100%{
+    scale: 1.15
+  }
+}
+.zoom-in-out{
+  animation: zoom-in-out 1.2s infinite ease-in-out alternate-reverse;
+}

@@ -1,23 +1,48 @@
-import {create} from 'zustand'
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+
 type Profile = {
-    username : string;
-    bio: string;
-    avatar: string;
-    id: string;
-    clerkId: string;
-    isOnboarded: boolean;
-} | null
-const initialProfile: Profile = null
+  username: string;
+  bio: string;
+  avatar: string;
+  id: string;
+  clerkId: string;
+  isOnboarded: boolean;
+  email: string;
+} | null;
 
-const useProfileStore = create((set)=> ({
-profile: initialProfile,
-setProfile: (data: Omit<Profile, 'wallpaper'>) => set(() => ({
-    ...data
-})),
-updateProfile :(data: Partial<Profile>) => set (() => ({
-    ...data
-})),
-removeProfile: () => set (() => null, true)
-}))
+const initialProfile: Profile = null;
 
-export {useProfileStore};
+type ProfileStore = {
+  profile: Profile;
+  setProfile: (data: Profile) => void;
+  updateProfile: (data: Partial<Profile>) => void;
+  removeProfile: () => void;
+};
+
+const useProfileStore = create<ProfileStore>()(
+  persist(
+    (set) => ({
+      profile: initialProfile,
+      setProfile: (data: Profile) => set(() => ({ profile: data })),
+      updateProfile: (data: Partial<Profile>) =>
+        set((state) => ({
+          profile:
+            state.profile === null
+              ? null
+              : {
+                  ...state.profile,
+                  ...data,
+                },
+        })),
+      removeProfile: () => set({ profile: null }),
+    }),
+    {
+      name: "profile-storage",
+      storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+    }
+  )
+);
+
+export { useProfileStore };
+

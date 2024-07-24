@@ -56,7 +56,15 @@ const getChatMessages = async (
           orderBy: {
             createdAt: "desc",
           },
-          include: {
+          select: {
+            resourceUrl: true,
+            body: true,
+            isEditted: true,
+            isReply: true,
+            parentMessageId: true,
+            id: true,
+            type: true,
+            readByIds: true,
             Sender: {
               select: {
                 avatar: true,
@@ -73,14 +81,33 @@ const getChatMessages = async (
                 },
               },
             },
+            ParentMessage : {
+              select : {
+                Sender: {
+                  select: {
+                    avatar: true,
+                    username: true
+                  }
+                },
+                body: true
+              }
+            }
           },
         },
       },
          });
-         
+    const formattedMessages = messages?.message.map((message) => ({
+      ...message,
+      ParentMessage: message?.ParentMessage ? 
+      {
+        avatar: message.ParentMessage.Sender.avatar,
+        userame: message.ParentMessage.Sender.username,
+        body: message.ParentMessage?.body
+      } : null
+    }))
     res.status(200).json({
       message: "chat's messages",
-      data: messages ?? [],
+      data: formattedMessages ?? [],
       success: true
     });
   } catch (err) {

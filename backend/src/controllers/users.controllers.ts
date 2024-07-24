@@ -5,15 +5,15 @@ import clerkClient from "@clerk/clerk-sdk-node";
 /**
  * @method GET
  * @description gets a given user profile
- * @route /api/v1/users/:userId
+ * @route /api/v1/users/profile
  */
 const getProfile = async (req: Request, res: Response, next:NextFunction) => {
   try {
-    const { userId } = req.params;
+    //const { userId } = req.params;
     const clerkId = req.auth.userId;
     const foundUser = await prisma.user.findUnique({
       where: {
-        id: userId,
+        clerkId
       },
 
       select: {
@@ -29,7 +29,8 @@ const getProfile = async (req: Request, res: Response, next:NextFunction) => {
     if (!foundUser) {
       return res.status(400).json({
         message: "profile does not exist",
-        success: false
+        success: false,
+        user: null
       });     
     }
     if (foundUser.clerkId !== clerkId) {
@@ -145,22 +146,22 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
  * @method POST
  * @param req
  * @param res
- * @route /api/v1/users/create
+ * @route /api/v1/users
  * @description creates a user after they have signed up, the client uses clerk for authentication.
  */
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { username, email, bio, avatar: bodyAvatarUrl } = req.body;
+    const { username, email, bio, avatar} = req.body;
     const clerkId = req.auth.userId;
-    let avatar = "";
-    if (!bodyAvatarUrl) {
-      if (req?.files?.avatar) {
-        const url = await uploadFile(req.files.avatar as unknown as string);
-        avatar = url;
-      }
-    } else {
-      avatar = bodyAvatarUrl;
-    }
+    console.log(JSON.stringify({
+      username,
+      email,
+      bio,
+      isOnboarded: true,
+      avatar,
+      clerkId,
+    }))
+   
     const isUsernameTaken = await prisma.user.findUnique({
       where: {
         username,
@@ -180,7 +181,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         email,
         bio,
         isOnboarded: true,
-        avatar,
+        avatar: avatar ?? null,
         clerkId,
       },
       select: {
@@ -202,20 +203,21 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 /**
- * @method PUT
+ * @method PATCH
  * @description updates a given user's profile.
- * @route /api/v1/users/:userId
+ * @route /api/v1/users
  * @param req
  * @param res
  */
 const updateProfile = async (req: Request, res: Response, next:NextFunction) => {
   try {
-    const { userId } = req.params;
+    console.log("executing route handler!")
     const clerkId = req.auth.userId;
-    const { username, bio } = req.body;
+    const { username, bio, avatar } = req.body;
+    console.log(JSON.stringify(req.body))
     const foundUser = await prisma.user.findUnique({
       where: {
-        id: userId,
+        clerkId,
       },
       select: {
         username: true,
@@ -238,27 +240,23 @@ const updateProfile = async (req: Request, res: Response, next:NextFunction) => 
       });
      
     }
-    let avatar = "";
-    if (req?.files?.avatar) {
-        const url = await uploadFile(req.files.avatar as unknown as string);
-        avatar = url;
-    }
     const updatedUsername = username || foundUser.username;
     const updatedBio = bio || foundUser.bio;
-    let updatedAvatar = avatar || foundUser.avatar;
+    const updatedAvatar = avatar || foundUser.avatar;
   const updatedProfile =  await prisma.user.update({
       where: {
-        id: userId,
+        clerkId
       },
       data: {
         avatar: updatedAvatar,
         username: updatedUsername,
         bio: updatedBio,
+        isOnboarded: true
       },
     });
     return res.status(200).json({
       message: "succesfully updated user's profile",
-      profile: updatedProfile,
+      user: updatedProfile,
       success: true
     })
   } catch (err) {

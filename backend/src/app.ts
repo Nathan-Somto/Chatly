@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { NextFunction, Request, Response } from "express";
 import { v2 as cloudinary } from "cloudinary";
 import path from "path";
@@ -8,8 +9,9 @@ import messageRouter from "./routes/message.routes";
 import searchRouter from "./routes/search.routes";
 import fileUpload from "express-fileupload";
 import { errorHandler } from "./middlewares/errorHandler";
+import { upload } from './controllers/upload.controllers';
+console.log("client secret", process.env.CLERK_SECRET_KEY);
 const app = express();
-
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -23,13 +25,13 @@ app.use(
 app.use(express.json());
 app.use(
   fileUpload({
-    useTempFiles: true,
     tempFileDir: "./tmp",
     limits: {
       fileSize: 70 * 1024 * 1024,
     },
   })
 );
+app.post('/api/v1/upload', upload);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chats", chatRouter);
 app.use("/api/v1/messages", messageRouter);

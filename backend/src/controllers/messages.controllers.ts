@@ -13,7 +13,7 @@ const createMessage = async (
   next: NextFunction
 ) => {
   try {
-    const { userId, body, chatId, type, resourceUrl } = req.body;
+    const { userId, body, chatId, type, resourceUrl, parentMessageId } = req.body;
     const message = await prisma.message.create({
       data: {
         body,
@@ -21,6 +21,7 @@ const createMessage = async (
         senderId: userId,
         type: type ?? "TEXT",
         resourceUrl: resourceUrl ?? "",
+        parentMessageId: parentMessageId ?? null
       },
       include: {
         Sender: {

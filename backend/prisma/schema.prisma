@@ -37,18 +37,22 @@ model Member {
 }
 
 model Message {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  body        String?
-  Sender      User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  senderId    String      @db.ObjectId
-  isEditted   Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  resourceUrl String?
-  Chat        Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  chatId      String      @db.ObjectId
-  type        MessageType @default(TEXT)
-  readBy      Member[]    @relation(name: "ReadBy", references: [id], fields: [readByIds])
-  readByIds   String[]    @db.ObjectId
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  body            String?
+  Sender          User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId        String      @db.ObjectId
+  isEditted       Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  resourceUrl     String?
+  Chat            Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId          String      @db.ObjectId
+  type            MessageType @default(TEXT)
+  readBy          Member[]    @relation(name: "ReadBy", references: [id], fields: [readByIds])
+  readByIds       String[]    @db.ObjectId
+  parentMessageId String?     @db.ObjectId
+  ParentMessage   Message?    @relation("ParentMessage", fields: [parentMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Replies         Message[]   @relation("ParentMessage")
+  isReply         Boolean     @default(false)
 }
 
 model Chat {

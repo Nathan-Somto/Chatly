@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 
 const errorHandler = (err: Error,req:Request, res: Response, next: NextFunction) => {
     let message = "something went wrong";
-    console.error(err.message);
+    console.error('[Error]: ',err.message);
    if(err instanceof PrismaClientInitializationError){
     message = "could not connect to db"
    }

@@ -1,45 +1,59 @@
 import { create } from "zustand";
-import {persist} from "zustand/middleware";
+import { persist } from "zustand/middleware";
 // when i click a chat this is responsible for filling the chat header
 // this is also respondsible for setting messages, updating and deleting a message.
 export type ActiveChat = {
   groupInfo: {
-    name: string;
-    members: {
-     user: { 
-      username: string;
-      avatar: string;
-      lastSeen: Date;
-      id: string;
-     }
-    }[];
     id: string;
     isGroup: boolean;
+    name: string;
+    avatars: string[];
   } | null;
   dmInfo: {
-    username: string;
     avatar: string;
-    lastSeen: Date;
+    username: string;
     id: string;
+    lastSeen: Date | undefined;
   } | null;
   //messages: Message[];
 } | null;
 interface ActiveChatState {
   activeChat: ActiveChat;
   setActiveChat: (data: ActiveChat) => void;
+  updateLastSeen: (lastSeen: Date) => void;
   reset: () => void;
 }
 const initialChat: ActiveChat = null;
-type Store = (set: (partial: ActiveChatState | Partial<ActiveChatState> | ((state: ActiveChatState) => ActiveChatState | Partial<ActiveChatState>), replace?: boolean | undefined) => void) => ActiveChatState 
+type Store = (
+  set: (
+    partial:
+      | ActiveChatState
+      | Partial<ActiveChatState>
+      | ((
+          state: ActiveChatState
+        ) => ActiveChatState | Partial<ActiveChatState>),
+    replace?: boolean | undefined
+  ) => void
+) => ActiveChatState;
 let store: Store = (set) => ({
   activeChat: initialChat,
   setActiveChat: (data: ActiveChat) => set(() => ({ activeChat: data })),
+  updateLastSeen: (lastSeen: Date) => {
+    set((state) => {
+      if (state.activeChat?.dmInfo) {
+        state.activeChat.dmInfo.lastSeen = lastSeen;
+      }
+      return state;
+    });
+  },
   reset: () => {
     set({ activeChat: initialChat });
   },
-})
+});
 
 /**@todo handle last Seen update */
-const useActiveChat = create<ActiveChatState>()(persist(store, {name: "activeChat"}));
+const useActiveChat = create<ActiveChatState>()(
+  persist(store, { name: "activeChat" })
+);
 
-export {useActiveChat}
+export { useActiveChat };

@@ -4,13 +4,15 @@ import { ChatBoxType } from ".";
 import { useMemo } from "react";
 import AvatarGroup from "../common/avatar-group";
 import { ActiveChat, useActiveChat } from "@/hooks/useActiveChat";
+import AvatarUser from "../common/avatar-user";
 type Props = ChatBoxType;
 function ChatBox({
   id,
   isGroup,
   name,
-  message: { body, createdAt, readBy },
-  members,
+  message: { body, createdAt, readByIds: readBy },
+  avatars,
+  lastSeen
 }: Props) {
   const setActiveChat = useActiveChat((state) => state.setActiveChat);
   const { pathname } = useLocation();
@@ -24,17 +26,17 @@ function ChatBox({
     const dmInfo = isGroup
       ? null
       : {
-          avatar: members[0].user.avatar,
-          username: members[0].user.username,
-          id: members[0].user.id,
-          lastSeen: members[0].user.lastSeen,
+          avatar: avatars[0],
+          username: name ?? "Chatly User",
+          id,
+          lastSeen: lastSeen,
         };
     const groupInfo = isGroup
       ? {
           id,
           isGroup: true,
-          members,
-          name,
+          name: name ?? 'Group Chat',
+          avatars,
         }
       : null;
     setActiveChat({
@@ -44,7 +46,7 @@ function ChatBox({
     navigate(`/${user.id}/chats/${id}`);
   }
   const hasSeen = useMemo(() => {
-    return readBy.some((value) => value.userId === user.id);
+    return readBy.some((value) => value === user.id);
   }, [readBy]);
   return (
     <div
@@ -68,12 +70,12 @@ function ChatBox({
       )}
     >
       {isGroup ? (
-        <AvatarGroup members={members} />
+        <AvatarGroup avatars={avatars} />
       ) : (
-        <img
-          src={members[0]?.user?.avatar}
-          alt="user's avatar"
-          className="rounded-full h-12 w-12 object-cover"
+        <AvatarUser
+        src={avatars?.length > 0 ? avatars[0] : null}
+         alt="user's avatar"
+         size={48}
         />
       )}
       <div className="min-w-0 flex-1">
@@ -81,7 +83,7 @@ function ChatBox({
           <span className="absolute inset-0" aria-hidden="true" />
           <div className="flex justify-between items-center mb-1">
             <p className="text-md font-medium text-gray-900 truncate dark:text-gray-100">
-              {isGroup ? name : members[0]?.user?.username}
+              { name }
             </p>
             {createdAt && (
               <p

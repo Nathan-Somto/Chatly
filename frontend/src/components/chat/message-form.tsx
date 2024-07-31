@@ -24,6 +24,11 @@ import EmojiPicker, {
 } from "emoji-picker-react";
 import { useTheme } from "../wrappers/theme-provider";
 import { useMessageOptions } from "@/hooks/useMessageOptions";
+import { useMutate } from "@/hooks/query/useMutate";
+import { useProfileStore } from "@/hooks/useProfile";
+import { CreateMessagePayload, EditMessagePayload, MessageEmit } from "@/api-types";
+import useSocketStore from "@/hooks/useSocket";
+import { useActiveChat } from "@/hooks/useActiveChat";
 const MemoEmojiPicker = memo(({ ...props }: PickerProps) => (
   <EmojiPicker {...props} />
 ));
@@ -42,7 +47,31 @@ function MessageForm() {
   const { theme } = useTheme();
   const isReply = replyTo !== null;
   const isEditting = editMessage !== null;
-  const { addMessage, messages, setMessages } = useMessages((state) => state);
+  const { profile} = useProfileStore();
+  const { addMessage, messages, setMessages } = useMessages();
+  const {socket} = useSocketStore();
+  const {activeChat} = useActiveChat();
+  function onSuccess(){
+    // find the message which is sending and update it to sent
+    const foundMessage = messages.find(message => message.sending);
+    if(foundMessage){
+      const messagesCopy = messages.slice();
+      foundMessage.sending = false;
+      setMessages(messagesCopy);
+    }
+  }
+  const {mutate: postMutate, isPending: isPosting} = useMutate({
+    defaultMessage: "Failed to send message",
+    method: "post",
+    route: "/messages",
+    onSuccess
+  });
+  const {mutate: patchMutate, isPending: isPatching} = useMutate({
+    defaultMessage: "Failed to edit message",
+    method: "patch",
+    route: `/messages/${editMessage?.id}`,
+  })
+  const disableBtn = isPosting || isPatching;
   const hasReachedMaxHeight = useMemo(() => {
     if (textAreaRef.current) {
       return textAreaRef.current.clientHeight >= 80;
@@ -59,13 +88,15 @@ function MessageForm() {
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (body.length === 0) return;
+    if(profile === null) return;
+    if(!chatId) return;
     try {
   
-      const message: (typeof messages)[number] = {
+      let message: (typeof messages)[number] = {
         Sender: {
-          username: "Nathan_Somto",
-          avatar: avatar2,
-          id: "user1",
+          username: profile.username,
+          avatar: profile.avatar,
+          id: profile.id,
           Member: [
             {
               role: "MEMBER",
@@ -73,7 +104,7 @@ function MessageForm() {
           ],
         },
         body,
-        chatId: chatId ?? "",
+        chatId,
         createdAt: new Date(),
         id: v4(),
         isEditted: false,
@@ -94,27 +125,59 @@ function MessageForm() {
         };
         // add the parent id to the message payload 
       }
+      // optimistic update with sending;
       if(isEditting){
         // find the message
         const messagesCopy = messages.slice()
         const foundMessage = messagesCopy[editMessage.index];
         foundMessage.isEditted = true;
         foundMessage.body = body;
+        foundMessage.sending = true;
+        message = foundMessage;
         setMessages(messagesCopy)
       }else {
         addMessage(message);
       }
-      // optimistic update with sending;
-     
       // store in db;
+      let chatInfo = {
+        id: chatId,
+        isGroup: activeChat?.groupInfo?.isGroup ?? false,
+        name: activeChat?.dmInfo?.username ?? activeChat?.groupInfo?.name ?? "",
+        // ensure avatars is always string[]
+        avatars: activeChat?.groupInfo?.avatars ?? [activeChat?.dmInfo?.avatar ?? ""],
+      }
+      let createMessagePayload: CreateMessagePayload = {
+        body,
+        chatId,
+        parentMessageId: replyTo?.parentId ?? null,
+        resourceUrl: null,
+        userId: profile.id,
+        type: "TEXT"
+      }
+      let editMessagePayload: EditMessagePayload = {
+        body,
+        chatId,
+        userId: profile.id
+      }
+      if(isEditting){
+        patchMutate(editMessagePayload);
+      }else {
+        postMutate(createMessagePayload);
+      }
       // emit chat through socket.io;
-      // change state to sent;
+      let messageEmit: MessageEmit = {
+        chatInfo,
+        message
+      }
+      socket?.emit("newMessage", messageEmit);
+      // change state to sent via the onSuccess;
       if(isEditting || isReply){
         closeOption()
       }
       setBody("");
     } catch (err) {
       // set failed to true.
+
     }
   }
   function handleEmojiClick(emojiDataObj: EmojiClickData, _: MouseEvent) {
@@ -198,7 +261,7 @@ function MessageForm() {
             }
           }}
           onKeyDown={(e) => {
-            if (e.code === "Enter" && buttonRef.current !== null) {
+            if (e.code === "Enter" && buttonRef.current !== null && !disableBtn) {
               buttonRef.current.click();
             }
           }}
@@ -210,6 +273,7 @@ function MessageForm() {
         {hasStartedTyping ? (
           <Button
             ref={buttonRef}
+            disabled={disableBtn}
             size="icon"
             className="rounded-full p-2 shadow-md h-9 w-9 flex-shrink-0 text-[20px] bg-brand-p2 text-white hover:bg-[rgb(102,174,233)] delay-150"
           >

@@ -1,21 +1,15 @@
-type ChatBoxType = {
-    name: string;
-    id: string;
-    isGroup: boolean;
-    members:{
-        user: {
-            username: string;
-            avatar: string;
-            id: string;
-            lastSeen: Date;
-        }
-    }[],
-    message: {
-        createdAt: Date;
-        body: string | null;
-        readBy: {
-            userId: string;
-        }[];
+type ChatBoxType = 
+    {
+        id: string;
+        isGroup: boolean;
+        name: string | null;
+        message: {
+            createdAt: Date;
+            body: string | null;
+            type: MessageType;
+            readByIds: string[];
+        };
+        avatars: string[];
+        lastSeen?: Date;
     }
-}
 export {type ChatBoxType}

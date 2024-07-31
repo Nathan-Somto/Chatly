@@ -2,23 +2,33 @@ import { DarkWall, LightWall } from "@/assets";
 import { useTheme } from "../wrappers/theme-provider";
 import { MessageSquareIcon } from "lucide-react";
 import P from "../ui/typo/P";
-import Message from "./message";
 import { useMessages } from "@/hooks/useMessages";
 import { v4 as uuidv4 } from "uuid";
 import { useEffect, useRef, useState } from "react";
 import MediaViewModal from "../modals/media-viewer-modal";
 import DeleteMessageModal from "../modals/delete-message-modal";
+import useSocketStore from "@/hooks/useSocket";
+import { MessageEmit } from "@/api-types";
+import Message from "./message";
 
 function ChatBody() {
   const [openImgModal, setOpenImgModal] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
   const { theme } = useTheme();
-  const messages = useMessages((state) => state.messages);
+  const {messages, addMessage} = useMessages();
+  const {socket} = useSocketStore();
   const bodyRef = useRef<HTMLElement>(null);
   function openImageModal(src: string) {
     setOpenImgModal(true);
     setImgSrc(src);
   }
+  // attach a socket io listener for new messages
+  useEffect(() => {
+    socket?.on("newMessage", (data: MessageEmit) => {
+      // update the messages state
+      addMessage(data.message);
+    })
+  }, [socket])
   // on new messages scroll to the bottom of the page if the user is not there
   useEffect(() => {
     if (bodyRef.current) {
@@ -27,7 +37,7 @@ function ChatBody() {
         behavior: "smooth",
       });
     }
-  }, [messages])
+  }, [messages]);
   return (
     <>
       <section

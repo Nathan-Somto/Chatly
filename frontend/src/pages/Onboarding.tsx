@@ -7,7 +7,7 @@ import Loader from "@/components/ui/loader";
 import H2 from "@/components/ui/typo/H2";
 import P from "@/components/ui/typo/P";
 import { useGetQuery } from "@/hooks/query/useGetQuery";
-import { useProfileStore } from "@/hooks/useProfileStore";
+import { useProfileStore } from "@/hooks/useProfile";
 import { generateUsername } from "@/lib/utils";
 import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
@@ -15,7 +15,9 @@ import { useNavigate } from "react-router-dom";
 
 function Onboarding() {
   const { setProfile } = useProfileStore();
-  const [userData, setUserData] = useState<GetUserResponse["user"] | null>(null);
+  const [userData, setUserData] = useState<GetUserResponse["user"] | null>(
+    null
+  );
   const navigate = useNavigate();
   const { isSignedIn, user, isLoaded } = useUser();
   const {
@@ -79,7 +81,7 @@ function Onboarding() {
           <H2 className="text-4xl">Set Up Profile</H2>
           <P>Complete your profile by filling this form</P>
         </div>
-      {userData !== null && (<AuthForm {...userData} />)}  
+        {userData !== null && <AuthForm {...userData} />}
       </main>
     </div>
   );

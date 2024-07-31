@@ -3,7 +3,7 @@ import { ErrorMessage } from "@/components/common/error-message";
 import LogoLoader from "@/components/common/logo-loader";
 import P from "@/components/ui/typo/P";
 import { useGetQuery } from "@/hooks/query/useGetQuery";
-import { useProfileStore } from "@/hooks/useProfileStore";
+import { useProfileStore } from "@/hooks/useProfile";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 export default function ChatsRedirect() {
@@ -11,7 +11,6 @@ export default function ChatsRedirect() {
   const { setProfile } = useProfileStore();
   const {
     data: response,
-    isPending,
     isError,
     refetch,
   } = useGetQuery<GetUserResponse>({

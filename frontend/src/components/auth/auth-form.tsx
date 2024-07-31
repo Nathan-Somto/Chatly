@@ -5,22 +5,22 @@ import { Button } from "../ui/button";
 import TextAreaGroup from "../ui/textarea-group";
 import toast from "react-hot-toast";
 import * as z from "zod";
-import { ImagePlusIcon} from "lucide-react";
+import { ImagePlusIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { useMutate } from "@/hooks/query/useMutate";
 import { useNavigate } from "react-router-dom";
-import { useProfileStore } from "@/hooks/useProfileStore";
+import { useProfileStore } from "@/hooks/useProfile";
 import { AxiosResponse } from "axios";
 import { displayError, uploadFile } from "@/lib/utils";
 import AvatarUser from "../common/avatar-user";
 type Props = {
-    username: string;
-    bio: string;
-    avatar: string;
-    id: string;
-    clerkId: string;
-    isOnboarded: boolean;
-    email: string;
+  username: string;
+  bio: string;
+  avatar: string;
+  id: string;
+  clerkId: string;
+  isOnboarded: boolean;
+  email: string;
   handleModalClose?: () => void;
 };
 const schema = z.object({
@@ -30,9 +30,9 @@ const schema = z.object({
 });
 type SchemaType = z.infer<typeof schema>;
 function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const imageRef = useRef<null | HTMLInputElement>(null);
-  const {setProfile} = useProfileStore();
+  const { setProfile } = useProfileStore();
   const [files, setFiles] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const {
@@ -47,8 +47,8 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
       avatar,
     },
   });
- function onSuccess(response: AxiosResponse<any, any>) {
-  console.log("response: ", response)
+  function onSuccess(response: AxiosResponse<any, any>) {
+    console.log("response: ", response);
     const user = response.data.user;
     setProfile({
       avatar: user.avatar,
@@ -57,55 +57,53 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
       email: user.email,
       id: user.id,
       isOnboarded: user.isOnboarded,
-      username: user.username
+      username: user.username,
     });
     navigate(`/${user.clerkId}/chats`);
     console.log(response);
   }
-  const {mutate: postMutate, isPending: isPostPending} = useMutate({
+  const { mutate: postMutate, isPending: isPostPending } = useMutate({
     defaultMessage: "Failed to create user profile!",
     method: "post",
     route: "/users",
-    onSuccess
-  })
-  const {mutate: putMutate, isPending: isPutPending} = useMutate({
+    onSuccess,
+  });
+  const { mutate: putMutate, isPending: isPutPending } = useMutate({
     defaultMessage: "Failed to create user profile!",
     method: "patch",
     route: `/users`,
-    onSuccess
-  })
-  
+    onSuccess,
+  });
+
   async function onSubmit(data: SchemaType) {
     setIsUploading(true);
     try {
       if (files && imageRef.current && imageRef.current.files) {
-        console.log("the file: ",imageRef.current.files[0]);
+        console.log("the file: ", imageRef.current.files[0]);
         const uploadedUrl = await uploadFile(imageRef.current.files[0]);
         if (uploadedUrl) {
           data.avatar = uploadedUrl;
         }
       }
       setIsUploading(false);
-      console.log("on submit data: ",data);
-      if(id === ''){
+      console.log("on submit data: ", data);
+      if (id === "") {
         postMutate({
           ...data,
           email,
           clerkId,
-          isOnboarded: true
-        })
-      }
-      else {
+          isOnboarded: true,
+        });
+      } else {
         putMutate({
           ...data,
           email,
           clerkId,
-          isOnboarded: true
-        })
+          isOnboarded: true,
+        });
       }
-    }
-    catch(err){
-      toast.error(displayError(err, 'failed to create user profile!'))
+    } catch (err) {
+      toast.error(displayError(err, "failed to create user profile!"));
     }
   }
   const disableBtn = isPostPending || isPutPending || isUploading;
@@ -131,7 +129,12 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
       onSubmit={handleSubmit(onSubmit)}
     >
       <figure className="flex items-center gap-2 mx-auto relative h-24 w-24 text-sm flex-wrap justify-center flex-shrink-0">
-       <AvatarUser src={files || avatar} alt="avatar preview" size={96} className="ring-brand-p2 ring-2"/>
+        <AvatarUser
+          src={files || avatar}
+          alt="avatar preview"
+          size={96}
+          className="ring-brand-p2 ring-2"
+        />
         <Button
           type="button"
           className="absolute -bottom-2 h-9 w-9 z-[3] right-0"
@@ -168,8 +171,12 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
         register={register}
         className={"w-full h-[100px]"}
       />
-      <Button className="min-w-full text-gray-100" size="lg" disabled={disableBtn}>
-        {disableBtn ? "Creating..." :"Save"}
+      <Button
+        className="min-w-full text-gray-100"
+        size="lg"
+        disabled={disableBtn}
+      >
+        {disableBtn ? "Creating..." : "Save"}
       </Button>
     </form>
   );

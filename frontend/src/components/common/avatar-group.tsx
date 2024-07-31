@@ -2,27 +2,17 @@ import { cn } from "@/lib/utils";
 import { User } from "lucide-react";
 import {v4 as uuidv4} from "uuid";
 type Props = {
-  members: {
-    user: {
-      username: string;
-      avatar: string;
-    };
-  }[];
+ avatars: string[];
   size?: number
 };
-function AvatarGroup({ members, size=48 }: Props) {
-  const avatarArr: Props["members"] =
-    members.length < 3
+function AvatarGroup({ avatars, size=48 }: Props) {
+  const avatarArr: string | 'unknown'[] =
+    avatars.length < 3
       ? [
-          ...members,
-          ...new Array(3 - members.length).fill({
-            user: {
-              username: "unknown",
-              avatar: "",
-            },
-          }),
+          ...avatars,
+          ...new Array(3 -avatars.length).fill("unknown"),
         ]
-      : members.slice(0,3);
+      : avatars.slice(0,3);
       console.log(avatarArr)
   const positionMap = {
     0: " z-[1] -top-1 left-2",
@@ -36,7 +26,7 @@ function AvatarGroup({ members, size=48 }: Props) {
       width: size
     }}>
       {avatarArr.map((item, index) => {
-        if (item.user.username === "unknown") {
+        if (item === "unknown") {
           return (
             <User
             key={uuidv4()}
@@ -53,8 +43,8 @@ function AvatarGroup({ members, size=48 }: Props) {
         }
        return ( <img
         key={uuidv4()}
-          src={item.user.avatar}
-          alt={`${item.user.username} avatar`}
+          src={item}
+          alt={`user ${index + 1} avatar`}
           className={cn(
             "absolute rounded-[50%] border-2 border-slate-500 p-0 dark:border-slate-700",
             positionMap[index as keyof typeof positionMap]

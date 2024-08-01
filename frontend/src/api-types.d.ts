@@ -1,4 +1,12 @@
 /** Response Types **/
+type PaginatedResponse<K extends string, T> = {
+ [index in K]: T[];
+} &
+ {
+ totalSize:number;
+ page:number;
+ pageSize:number;
+}
 export type GetUserResponse = {
   user: {
     id: string;
@@ -10,6 +18,13 @@ export type GetUserResponse = {
     bio: string;
   };
 };
+export type GetMembersInfoResponse = {
+  users: {
+    id: string;
+    username: string;
+  }[]
+};
+export type GetMessagesResponse = PaginatedResponse<"messages", Message['message']>;
 /** Ends Here **/
 
 /** Socket IO types **/
@@ -34,5 +49,8 @@ export type CreateMessagePayload = {
   resourceUrl: string | null;
   parentMessageId: string | null;
 };
-export type EditMessagePayload = Pick<CreateMessagePayload, "body" | "chatId" | "userId"> 
+export type EditMessagePayload = Pick<CreateMessagePayload, "body" | "chatId" | "userId">;
+export type CreateDmPayload = {
+  members: {userId: string}[]
+} 
 /** Ends Here **/

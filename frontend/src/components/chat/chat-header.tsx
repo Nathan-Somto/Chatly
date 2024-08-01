@@ -9,17 +9,17 @@ import { useMemo, useState } from "react";
 import { cn, formatLastSeen } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ProfileDrawer from "../drawers/profileDrawer/profile-drawer";
+import { useProfileStore } from "@/hooks/useProfile";
 
 function ChatHeader() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const activeChat = useActiveChat((state) => state.activeChat);
+  const {profile} = useProfileStore();
   console.log(activeChat);
   const members = useMemo(() => {
     return (
-      activeChat?.groupInfo?.members
-        .slice(0, 3)
-        .map((member) => member.user.username) ?? []
+      activeChat?.groupInfo?.members ?? []
     );
   }, [activeChat]);
   const { lastSeen, isOnline } = useMemo(
@@ -27,7 +27,6 @@ function ChatHeader() {
     [activeChat]
   );
   const navigate = useNavigate();
-  const userId = `12345`;
   function handleDrawerOpen() {
     setOpenDrawer(true);
   }
@@ -39,7 +38,7 @@ function ChatHeader() {
           variant={"ghost"}
           className="lg:hidden"
           size="icon"
-          onClick={() => navigate(`/${userId}/chats`)}
+          onClick={() => navigate(`/${profile?.id}/chats`)}
         >
           <ChevronLeft />
         </Button>
@@ -49,7 +48,7 @@ function ChatHeader() {
             className="h-12 max-lg:hover:opacity-70 max-lg:cursor-pointer w-12 max-lg:text-center  text-slate-500 flex  items-center justify-center  "
           >
             {activeChat?.groupInfo?.isGroup ? (
-              <AvatarGroup members={activeChat?.groupInfo?.members ?? []} />
+              <AvatarGroup  avatars={activeChat?.groupInfo?.avatars ?? []} />
             ) : (
               <img
                 src={activeChat?.dmInfo?.avatar ?? ""}

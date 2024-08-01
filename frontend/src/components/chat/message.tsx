@@ -9,12 +9,12 @@ type Props = Message & {
   failed?: boolean;
   index: number;
 };
-import { useState } from "react";
 import LinkifiedText from "./linkifiedText";
+import { useProfileStore } from "@/hooks/useProfile";
 
 function Message({
   message: {
-    Sender: { Member, avatar, username },
+    Sender: { avatar, username,id: senderId },
     body,
     createdAt,
     isEditted,
@@ -22,7 +22,6 @@ function Message({
     id,
     resourceUrl,
     type,
-    senderId,
     isReply,
     parentMessage,
   },
@@ -30,20 +29,9 @@ function Message({
   sending,
   index,
 }: Props) {
-  const user = {
-    id: "user1",
-  };
-
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const isOwn = user.id === senderId;
+  const {profile}= useProfileStore();
+  const isOwn = profile?.id === senderId;
   const isRead = readByIds.length > 0;
-
-  const handleRightClick = (e: React.MouseEvent) => {
-    console.log("clicked");
-    e.preventDefault();
-    setShowContextMenu(true);
-  };
-
   return (
     <>
      <MessageOptions
@@ -109,7 +97,7 @@ function Message({
                   )}
                 >
                   <img
-                    src={avatar}
+                    src={parentMessage?.avatar}
                     alt={"reply message avatar"}
                     loading="lazy"
                     className="h-full w-full object-center object-cover"
@@ -180,7 +168,7 @@ function Message({
           {/* Message Footer */}
           <div className="flex items-center gap-2">
             <P className="font-light text-sm">
-              {createdAt.toLocaleDateString()}
+              {new Date(createdAt)?.toLocaleDateString()}
             </P>
           </div>
         </div>

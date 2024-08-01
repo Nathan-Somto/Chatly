@@ -5,15 +5,13 @@ import {
   ReplyIcon,
   SendHorizonalIcon,
   SmileIcon,
-  XIcon,
   X
 } from "lucide-react";
 import { Button } from "../ui/button";
-import { useMemo, useState, useRef, memo, useTransition } from "react";
+import { useMemo, useState, useRef, memo, useTransition, useEffect } from "react";
 import { useAutoGrowTextarea } from "@/hooks/useAutoGrowTextarea";
 import { cn } from "@/lib/utils";
-import { useMessages } from "@/hooks/useMessages";
-import { avatar2 } from "@/assets";
+import { ModifiedMessage, useMessages } from "@/hooks/useMessages";
 import { useParams } from "react-router-dom";
 import { v4 } from "uuid";
 import EmojiPicker, {
@@ -29,6 +27,7 @@ import { useProfileStore } from "@/hooks/useProfile";
 import { CreateMessagePayload, EditMessagePayload, MessageEmit } from "@/api-types";
 import useSocketStore from "@/hooks/useSocket";
 import { useActiveChat } from "@/hooks/useActiveChat";
+import { AxiosResponse } from "axios";
 const MemoEmojiPicker = memo(({ ...props }: PickerProps) => (
   <EmojiPicker {...props} />
 ));
@@ -36,7 +35,7 @@ const MemoEmojiPicker = memo(({ ...props }: PickerProps) => (
 function MessageForm() {
   const {messageOptions:{editMessage, replyTo}, onReply, onEdit} = useMessageOptions()
   const { chatId } = useParams();
-  const [body, setBody] = useState(editMessage?.text ?? '');
+  const [body, setBody] = useState('');
   const hasStartedTyping = body.length > 0;
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const { textAreaRef } = useAutoGrowTextarea({ value: body });
@@ -51,12 +50,28 @@ function MessageForm() {
   const { addMessage, messages, setMessages } = useMessages();
   const {socket} = useSocketStore();
   const {activeChat} = useActiveChat();
-  function onSuccess(){
+  useEffect(()=> {
+    if(editMessage?.text){
+      setBody(editMessage.text)
+    }
+  },[editMessage])
+  function onSuccess(response: AxiosResponse<any, any>){
     // find the message which is sending and update it to sent
     const foundMessage = messages.find(message => message.sending);
     if(foundMessage){
       const messagesCopy = messages.slice();
+      foundMessage.id = response.data?.message?.id;
       foundMessage.sending = false;
+      setMessages(messagesCopy);
+    }
+  }
+  function onError(){
+    // find the message which is sending and update it to failed
+    const foundMessage = messages.find(message => message.sending);
+    if(foundMessage){
+      const messagesCopy = messages.slice();
+      foundMessage.sending = false;
+      foundMessage.failed = true;
       setMessages(messagesCopy);
     }
   }
@@ -64,7 +79,9 @@ function MessageForm() {
     defaultMessage: "Failed to send message",
     method: "post",
     route: "/messages",
-    onSuccess
+    onSuccess,
+    onError,
+    displayToast: false
   });
   const {mutate: patchMutate, isPending: isPatching} = useMutate({
     defaultMessage: "Failed to edit message",
@@ -87,12 +104,9 @@ function MessageForm() {
   }
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (body.length === 0) return;
-    if(profile === null) return;
-    if(!chatId) return;
+    if (body.length === 0 || !profile || !chatId) return;
     try {
-  
-      let message: (typeof messages)[number] = {
+      let optimisticMessage: ModifiedMessage = {
         Sender: {
           username: profile.username,
           avatar: profile.avatar,
@@ -105,12 +119,12 @@ function MessageForm() {
         },
         body,
         chatId,
+        id:v4(),
         createdAt: new Date(),
-        id: v4(),
         isEditted: false,
         readByIds: [],
         resourceUrl: null,
-        senderId: "user1",
+        senderId: profile?.id ?? null,
         type: "TEXT",
         sending: true,
         isReply,
@@ -118,12 +132,11 @@ function MessageForm() {
       };
       // if it is a reply message
       if (isReply) {
-        message.parentMessage = {
+        optimisticMessage.parentMessage = {
           body: replyTo?.text,
           avatar: replyTo?.avatar,
           username: replyTo?.username
         };
-        // add the parent id to the message payload 
       }
       // optimistic update with sending;
       if(isEditting){
@@ -133,10 +146,10 @@ function MessageForm() {
         foundMessage.isEditted = true;
         foundMessage.body = body;
         foundMessage.sending = true;
-        message = foundMessage;
-        setMessages(messagesCopy)
+        optimisticMessage = foundMessage;
+        setMessages(messagesCopy);
       }else {
-        addMessage(message);
+        addMessage(optimisticMessage);
       }
       // store in db;
       let chatInfo = {
@@ -149,6 +162,7 @@ function MessageForm() {
       let createMessagePayload: CreateMessagePayload = {
         body,
         chatId,
+        // add the parent id to the message payload 
         parentMessageId: replyTo?.parentId ?? null,
         resourceUrl: null,
         userId: profile.id,
@@ -167,17 +181,20 @@ function MessageForm() {
       // emit chat through socket.io;
       let messageEmit: MessageEmit = {
         chatInfo,
-        message
+        message: optimisticMessage
       }
-      socket?.emit("newMessage", messageEmit);
+      delete (messageEmit.message as ModifiedMessage).sending;
+      if(isEditting){
+      }else {
+        socket?.emit("sendMessage", messageEmit);
+      }
       // change state to sent via the onSuccess;
       if(isEditting || isReply){
         closeOption()
       }
       setBody("");
     } catch (err) {
-      // set failed to true.
-
+      console.log(err)
     }
   }
   function handleEmojiClick(emojiDataObj: EmojiClickData, _: MouseEvent) {

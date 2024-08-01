@@ -15,7 +15,6 @@ type Props = {
     children: React.ReactNode
 }
 function MessageOptions({children, isOwn, bodyText, id, replyTo, editMessage}: Props) {
-    console.log("open state in drop down menu: ", open);
     const {onEdit, onReply, toggleDeleteModal} = useMessageOptions();
     function handleCopy(){
         if(!bodyText) return;

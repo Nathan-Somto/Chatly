@@ -38,5 +38,5 @@ type EditMessage =  {
 }
 type MemberRole = "OWNER" | "ADMIN" | "MEMBER";
 
-type MessageType = "TEXT" | "AUDIO" | "IMAGE" | "VIDEO";
+type MessageType = "TEXT" | "AUDIO" | "IMAGE" | "VIDEO" | "SYSTEM";
 

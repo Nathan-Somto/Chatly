@@ -51,7 +51,7 @@ function Onboarding() {
         email: data?.user?.email ?? user.emailAddresses[0].emailAddress,
       };
       setProfile(userDataCopy);
-      if (data?.user.isOnboarded) {
+      if (data?.user?.isOnboarded) {
         navigate(`/${data?.user?.id}/chats`);
       } else {
         setUserData(userDataCopy);

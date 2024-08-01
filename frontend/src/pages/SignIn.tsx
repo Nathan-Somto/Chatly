@@ -8,7 +8,6 @@ function SignInPage() {
     <SignIn
       afterSignInUrl={`/chats-redirect`}
       signUpUrl="/sign-up"
-      redirectUrl={`/chats-redirect`}
       appearance={clerkConfig(theme)}
     />
   );

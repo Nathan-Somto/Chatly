@@ -4,6 +4,8 @@ import P from "../ui/typo/P";
 import H3 from "../ui/typo/H3";
 import { avatar1, avatar2, avatar3 } from "@/assets";
 import { v4 as uuidv4 } from "uuid";
+import { CreateDm } from "@/services/createDm";
+import { useProfileStore } from "@/hooks/useProfile";
 type Props = UserBox & {
   toggleLoading: (value: boolean) => void;
   showRole?: boolean;
@@ -17,16 +19,16 @@ export default function UserBox({
   toggleLoading,
   showRole=false
 }: Props) {
-  const navigate = useNavigate();
-  async function handleClick() {
-    toggleLoading(true);
-    try {
-      const chatId = await findConversation(id);
-      navigate(`/user1/chats/${chatId}`);
-    } catch (err) {
-    } finally {
+  const {profile} = useProfileStore();
+  const {handleCreate} = CreateDm({
+    members: [{userId: profile?.id ?? ''}, {userId: id}],
+    onComplete: () => {
       toggleLoading(false);
     }
+  });
+  async function handleClick() {
+      toggleLoading(true);
+      handleCreate();
   }
   const obj = formatLastSeen(lastSeen);
   return (

@@ -1,3 +1,4 @@
+import { TOKEN_REFRESH_TIME } from "@/constants";
 import { useAuth } from "@clerk/clerk-react";
 import React from "react";
 
@@ -20,7 +21,7 @@ export function useGetToken() {
        interval = setInterval(() => {
         fetchToken();
         console.log("fetching token...")
-      }, 60000);
+      }, TOKEN_REFRESH_TIME);
     }
 
     return () => {

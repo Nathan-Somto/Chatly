@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TypoProps } from "./type";
 
-const typoLead = ({ children, className, ...props }: TypoProps) => {
+const Lead = ({ children, className, ...props }: TypoProps) => {
   return (
     <p className={cn("text-xl text-muted-foreground", className)} {...props}>
       {children}
@@ -9,4 +9,4 @@ const typoLead = ({ children, className, ...props }: TypoProps) => {
   );
 };
 
-export default typoLead;
+export default Lead;

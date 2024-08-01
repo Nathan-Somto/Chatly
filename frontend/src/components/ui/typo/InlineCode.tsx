@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TypoProps } from "./type";
 
-const typoInlineCode = ({ children, className, ...props }: TypoProps) => {
+const InlineCode = ({ children, className, ...props }: TypoProps) => {
   return (
     <code
       className={cn(
@@ -15,4 +15,4 @@ const typoInlineCode = ({ children, className, ...props }: TypoProps) => {
   );
 };
 
-export default typoInlineCode;
+export default InlineCode;

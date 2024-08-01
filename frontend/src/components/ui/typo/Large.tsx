@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TypoProps } from "./type";
 
-const typoLarge = ({ children, className, ...props }: TypoProps) => {
+const Large = ({ children, className, ...props }: TypoProps) => {
   return (
     <div className={cn("text-lg font-semibold", className)} {...props}>
       {children}
@@ -9,4 +9,4 @@ const typoLarge = ({ children, className, ...props }: TypoProps) => {
   );
 };
 
-export default typoLarge;
+export default Large;

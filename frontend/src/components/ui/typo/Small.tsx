@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TypoProps } from "./type";
 
-const typoSmall = ({ children, className, ...props }: TypoProps) => {
+const Small = ({ children, className, ...props }: TypoProps) => {
   return (
     <small
       className={cn("text-sm font-medium leading-none", className)}
@@ -12,4 +12,4 @@ const typoSmall = ({ children, className, ...props }: TypoProps) => {
   );
 };
 
-export default typoSmall;
+export default Small;

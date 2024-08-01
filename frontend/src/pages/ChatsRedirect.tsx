@@ -26,7 +26,7 @@ export default function ChatsRedirect() {
   useEffect(() => {
     const data = response?.data;
     if (data) {
-      if (!data?.user?.isOnboarded) {
+      if (data?.user === null || !data?.user?.isOnboarded) {
         navigate("/onboarding");
         console.log(data);
       } else {

@@ -10,7 +10,9 @@ export type MutateType<T> = {
     route: string;
     onSuccess?: (response: AxiosResponse<any, any>) => void;
     onSettled?: () => void;
+    onError?: () => void;
     defaultMessage: string;
+    displayToast?: boolean;
     method: "post" | 'patch' | 'put'
 }
 export type GetResponse<T> = {

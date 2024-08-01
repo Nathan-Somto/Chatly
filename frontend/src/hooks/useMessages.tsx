@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { v4 as uuidv4 } from "uuid";
-import { avatar1 } from "@/assets";
-const messages: Message["message"][] = [
+/* import { v4 as uuidv4 } from "uuid";
+import { avatar1 } from "@/assets"; */
+/* const messages: Message["message"][] = [
     {
       Sender: {
         id: "user2",
@@ -222,8 +222,8 @@ const messages: Message["message"][] = [
         username: "User2"
       }
     },
-  ];
-type ModifiedMessage = Message["message"]& 
+  ]; */
+export type ModifiedMessage = Message["message"]& 
 {
     sending?:boolean; 
     failed?:boolean;
@@ -236,7 +236,7 @@ interface MessagesState {
 }
 
 const useMessages = create<MessagesState>((set) => ({
-  messages,
+  messages: [],
   setMessages: (data) => set(() => ({ messages: data })),
   addMessage: (data) =>
     set((state) => ({

@@ -8,6 +8,7 @@ export type ActiveChat = {
     isGroup: boolean;
     name: string;
     avatars: string[];
+    members?: string[];
   } | null;
   dmInfo: {
     avatar: string;

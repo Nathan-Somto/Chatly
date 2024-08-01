@@ -23,9 +23,16 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 function providers({ children }: TProvidersProps) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} navigate={(to) => navigate(to)} afterSignInUrl="/chats-redirect" afterSignUpUrl="/onboarding" signUpUrl="/sign-up/*" signInUrl="/sign-in/*">
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      navigate={(to) => navigate(to)}
+      afterSignInUrl="/chats-redirect"
+      afterSignUpUrl="/onboarding"
+      signUpUrl="/sign-up/*"
+      signInUrl="/sign-in/*"
+    >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <>

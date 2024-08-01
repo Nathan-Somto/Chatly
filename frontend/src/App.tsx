@@ -22,7 +22,7 @@ function App() {
         <Suspense fallback={<Loader/>}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/onboarding" element={<Onboarding/>} />
+          <Route path="/onboarding/*" element={<Onboarding/>} />
           <Route path="/chats-redirect/*" element={<ChatsRedirect/>}/>
           <Route element={<AuthLayout/>}>
           <Route path="/sign-in/*" element={<SignIn/>}/>

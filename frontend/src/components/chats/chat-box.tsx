@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ChatBoxType } from ".";
 import { useMemo } from "react";
 import AvatarGroup from "../common/avatar-group";
-import { ActiveChat, useActiveChat } from "@/hooks/useActiveChat";
+import { useActiveChat } from "@/hooks/useActiveChat";
 import AvatarUser from "../common/avatar-user";
+import { useProfileStore } from "@/hooks/useProfile";
 type Props = ChatBoxType;
 function ChatBox({
   id,
@@ -12,14 +13,13 @@ function ChatBox({
   name,
   message: { body, createdAt, readByIds: readBy },
   avatars,
-  lastSeen
+  lastSeen,
+  members
 }: Props) {
   const setActiveChat = useActiveChat((state) => state.setActiveChat);
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const user = {
-    id: "123456",
-  };
+ const {profile} = useProfileStore();
 
   const selected = pathname.includes(id);
   function handleClick() {
@@ -37,16 +37,17 @@ function ChatBox({
           isGroup: true,
           name: name ?? 'Group Chat',
           avatars,
+          members
         }
       : null;
     setActiveChat({
       dmInfo,
       groupInfo,
     });
-    navigate(`/${user.id}/chats/${id}`);
+    navigate(`/${profile?.id}/chats/${id}`);
   }
   const hasSeen = useMemo(() => {
-    return readBy.some((value) => value === user.id);
+    return readBy.some((value) => value === profile?.id);
   }, [readBy]);
   return (
     <div

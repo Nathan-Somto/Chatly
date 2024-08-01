@@ -11,5 +11,6 @@ type ChatBoxType =
         };
         avatars: string[];
         lastSeen?: Date;
+        members?:string[];
     }
 export {type ChatBoxType}

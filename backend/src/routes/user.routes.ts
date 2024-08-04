@@ -42,16 +42,10 @@ router.route("/")
  *                       id:
  *                         type: string
  *                       username:
- *                         type: string
- *                       email:
- *                         type: string
- *                       clerkId:
- *                         type: string
- *                       isOnboarded:
- *                         type: boolean
+ *                         type: string            
  *                       avatar:
  *                         type: string
- *                       createdAt:
+ *                       lastSeen:
  *                         type: string
  *                         format: date-time
  *                 message:
@@ -62,12 +56,9 @@ router.route("/")
  *                   success: true
  *                   users:
  *                     - id: "12345"
- *                       username: "username"
- *                       email: "som@gmail.com"
- *                       clerkId: "clerkId"
- *                       isOnboarded: true
+ *                       username: "username"                     
  *                       avatar: "https://example.com/avatar.jpg"
- *                       createdAt: "2023-01-01T00:00:00.000Z"
+ *                       lastSeen: "2023-01-01T00:00:00.000Z"
  *                   message: "successfully retrieved users"
  *       500:
  *         description: Internal server error.

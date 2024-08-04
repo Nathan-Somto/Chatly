@@ -64,6 +64,12 @@ const getUsers = async(req:Request, res:Response, next:NextFunction) => {
         NOT : {
           clerkId
         }
+      },
+      select: {
+        username: true,
+        id: true,
+        lastSeen: true,
+        avatar: true,
       }
     });
     let formattedMemberInfo;

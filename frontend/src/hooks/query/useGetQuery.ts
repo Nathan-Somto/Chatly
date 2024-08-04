@@ -5,16 +5,18 @@ import { displayError } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { mainApi } from "@/lib/axios";
 import { useGetToken } from "./useGetToken";
+import { AxiosError } from "axios";
 
 export function useGetQuery<T>({
   enabled,
   route,
   queryKey,
   defaultMessage = "failed to fetch",
-  displayToast=false
+  displayToast=false,
+  refetchOnMount = false
 }: GetQueryType<T>) {
   const [localEnabled, setLocalEnabled] = useState(false);
-  const {token} = useGetToken();
+  const {token, refetchToken} = useGetToken();
   useEffect(() => {
     if(token !== null && enabled){
       setLocalEnabled(true);
@@ -33,11 +35,18 @@ export function useGetQuery<T>({
             Authorization: `Bearer ${token}`,
         }
     }),
+    refetchOnMount
   });
   
   React.useEffect(() => {
     if (displayToast && isError && error) {
       console.error('[errorlog]', error);
+      if(error instanceof AxiosError){
+        console.log(error?.response?.data)
+        if(error.response?.data?.unauthenticated){
+          refetchToken();
+        }
+      }
      toast.error(displayError(error, defaultMessage));
     }
   }, [displayToast, isError, error, toast]);

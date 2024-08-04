@@ -5,6 +5,7 @@ export type GetQueryType<T> = {
     queryKey: QueryKey,
     displayToast?: boolean,
     defaultMessage?: string,
+    refetchOnMount?: boolean
 }
 export type MutateType<T> = {
     route: string;

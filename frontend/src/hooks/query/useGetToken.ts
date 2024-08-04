@@ -5,7 +5,10 @@ import React from "react";
 export function useGetToken() {
   const { getToken,isSignedIn } = useAuth();
   const [token, setToken] = React.useState<string | null>(null);
-
+  async function refetchToken() {
+    const gottenToken = await getToken();
+    setToken(gottenToken);
+  }
   React.useEffect(() => {
     let isMounted = true;
     let interval: NodeJS.Timeout;
@@ -30,5 +33,5 @@ export function useGetToken() {
     };
   }, [getToken, isSignedIn]);
 
-  return { token };
+  return { token, refetchToken };
 }

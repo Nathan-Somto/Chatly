@@ -20,7 +20,7 @@ const createMessage = async (
         chatId,
         senderId: userId,
         type: type ?? "TEXT",
-        resourceUrl: resourceUrl ?? "",
+        resourceUrl: resourceUrl ?? null,
         parentMessageId: parentMessageId ?? null
       },
       include: {
@@ -31,14 +31,6 @@ const createMessage = async (
             id: true,
           },
         },
-      },
-    });
-    await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        lastSeen: new Date(),
       },
     });
     return res
@@ -53,7 +45,7 @@ const createMessage = async (
   }
 };
 /**
- * @method PUT
+ * @method PATCH
  * @description edits only the content of a message
  * @param req
  * @param res
@@ -108,12 +100,6 @@ const editMessage = async (req: Request, res: Response, next: NextFunction) => {
             },
           },
         });
-        await prisma.user.update({
-            where: {id: userId},
-            data: {
-                lastSeen : new Date()
-            }
-        });
         res.status(200).json({
             message: "succesfully editted message",
             data:updatedMessage,
@@ -157,12 +143,6 @@ const deleteMessage = async (req: Request, res: Response, next: NextFunction) =>
         await prisma.message.delete({
             where : {
                 id: messageId
-            }
-        })
-        await prisma.user.update({
-            where: {id: isMyMessage.id},
-            data: {
-                lastSeen : new Date()
             }
         });
         res.status(200).json({

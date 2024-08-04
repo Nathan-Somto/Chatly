@@ -54,7 +54,7 @@ const getChatMessages = async (
           take: pageSize as number,
           skip: (page - 1) * (pageSize as number),
           orderBy: {
-            createdAt: "desc",
+            createdAt: "asc",
           },
           select: {
             resourceUrl: true,
@@ -65,6 +65,7 @@ const getChatMessages = async (
             id: true,
             type: true,
             readByIds: true,
+            createdAt: true,
             Sender: {
               select: {
                 avatar: true,
@@ -81,47 +82,51 @@ const getChatMessages = async (
                 },
               },
             },
-            ParentMessage : {
-              select : {
+            ParentMessage: {
+              select: {
                 Sender: {
                   select: {
                     avatar: true,
-                    username: true
-                  }
+                    username: true,
+                  },
                 },
-                body: true
-              }
-            }
+                body: true,
+              },
+            },
           },
         },
       },
-         });
+    });
     const formattedMessages = messages?.message.map((message) => ({
       ...message,
-      ParentMessage: message?.ParentMessage ? 
-      {
-        avatar: message.ParentMessage.Sender.avatar,
-        userame: message.ParentMessage.Sender.username,
-        body: message.ParentMessage?.body
-      } : null
-    }))
+      ParentMessage: message?.ParentMessage
+        ? {
+            avatar: message.ParentMessage.Sender.avatar,
+            userame: message.ParentMessage.Sender.username,
+            body: message.ParentMessage?.body,
+          }
+        : null,
+    }));
     res.status(200).json({
       message: "chat's messages",
-      data: formattedMessages ?? [],
-      success: true
+      messages: formattedMessages ?? [],
+      pages,
+      pageSize,
+      page,
+      success: true,
     });
   } catch (err) {
-    next(err)
+    next(err);
   }
 };
 /**
  * @method GET
- * @description gets the details for a specific chat including its members.
+ * @description gets the members for a specific chat.
  * @param req
  * @param res
- * @route /api/v1/chats/:chatId
+ * @route /api/v1/chats/:chatId/members
  */
-const getChatDetails = async (
+const getGroupChatMembers = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -129,7 +134,7 @@ const getChatDetails = async (
   try {
     const { userId } = req.body;
     const { chatId } = req.params;
-    const chatDetails = await prisma.chat.findUnique({
+    const chatMembers = await prisma.chat.findUnique({
       where: {
         id: chatId,
         members: {
@@ -139,9 +144,9 @@ const getChatDetails = async (
         },
         isGroup: true,
       },
-      include: {
+      select: {
         members: {
-          include: {
+          select: {
             user: {
               select: {
                 id: true,
@@ -154,18 +159,19 @@ const getChatDetails = async (
         },
       },
     });
-    if (chatDetails === null) {
-      res.status(400).json({
-        message: "you cannot access chat details",
+    if (chatMembers === null) {
+      res.status(404).json({
+        message: "group chat not found",
       });
       return;
     }
+    const formattedMembers = chatMembers.members.map((member) => member.user);
     res.status(200).json({
-      message: "retrieved chat details",
-      chatDetails,
+      message: "retrieved group chat members",
+      chatMembers: formattedMembers,
     });
   } catch (err) {
-    next(err)
+    next(err);
   }
 };
 
@@ -182,13 +188,9 @@ const createGroupChat = async (
   next: NextFunction
 ) => {
   try {
-    const { name, description, members, privacy, ownerId } = req.body;
-    /* member -> {
-      value: string,
-      label: string
-    }[]
-    */
-    if (Array.isArray(members) && members.length >= 3) {
+    const { name, description, members, privacy, ownerName, ownerId } = req.body;
+    const clerkId = req.auth.userId;
+    if (Array.isArray(members) && members.length >= 2) {
       const isValidMembers = members.every(
         (item) =>
           typeof item?.value !== "undefined" &&
@@ -213,20 +215,51 @@ const createGroupChat = async (
             create: members.map((member) => ({
               joinedAt: new Date(),
               user: { connect: { id: member.value } },
-              role: member.value === ownerId ? "OWNER" : "MEMBER"
-          }))
+              role: member?.isOwner ? "OWNER" : "MEMBER",
+            })),
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          privacy: true,
+          members: {
+            take: 3,
+            select: {
+              user: {
+                select: {
+                  avatar: true,
+                  username: true
+                },
+              },
+            },
+          },
         }
-      }
-    });
-
+      });
+      const firstMessage = await prisma.message.create({
+        data: {
+          chatId: groupChat.id,
+          body: `${ownerName} created a group chat`,
+          senderId: ownerId,
+          type: "SYSTEM",
+        },
+      });
+      const formattedGroupChat =  {     
+           ...groupChat,
+           // remove members property replace with avatars prop which is string[]
+            avatars: groupChat.members.map(member => member.user.avatar),
+            members: groupChat.members.slice(3).map(member => member.user.username)
+        };
       res.status(201).json({
         message: "successfully created group chat!",
-        groupChat,
+        groupChat: formattedGroupChat,
+        firstMessage,
         success: true,
       });
     } else {
       res.status(400).json({
-        message: "members must be an array and have a length of at least 3",
+        message: "members must be an array and have a length of at least 2",
         success: false,
       });
     }
@@ -261,10 +294,17 @@ const markAsRead = async (req: Request, res: Response, next: NextFunction) => {
         success: true,
       });
     }
+    const foundMember = await prisma.member.findFirst({
+      where: {
+        AND: [
+          {chatId},
+          {userId}
+        ],
+      }
+    });
     await prisma.member.update({
       where: {
-        userId: userId,
-        chatId,
+        id: foundMember?.id
       },
       data: {
         readMessagesIds: {
@@ -295,7 +335,6 @@ const createDmChat = async (
 ) => {
   try {
     const { members } = req.body;
-
     if (Array.isArray(members) && members.length == 2) {
       if (
         typeof members[0]?.userId !== "string" ||
@@ -314,6 +353,23 @@ const createDmChat = async (
             { isGroup: false },
           ],
         },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          privacy: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  username: true,
+                  avatar: true,
+                  lastSeen: true
+                },
+              },
+            },
+          },
+        }
       });
       if (chatExists) {
         res.status(200).json({
@@ -335,6 +391,23 @@ const createDmChat = async (
             })),
           },
         },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          privacy: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  username: true,
+                  avatar: true,
+                  lastSeen: true
+                },
+              },
+            },
+          },
+        }
       });
       res.status(201).json({
         message: "successfully created private message",
@@ -426,14 +499,14 @@ const joinPublicGroupChat = async (
 ) => {
   try {
     const { chatId } = req.params;
-    const { userId } = req.body;
+    const { userId, username } = req.body;
     const groupChat = await prisma.chat.findUnique({
       where: {
         id: chatId,
         isGroup: true,
         privacy: "PUBLIC",
       },
-      include: {
+      select: {
         members: {
           where: {
             userId,
@@ -467,13 +540,43 @@ const joinPublicGroupChat = async (
           },
         },
       },
-      include: {
-        members: true,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        privacy: true,
+        members: {
+          take: 3,
+          select: {
+            user: {
+              select: {
+                username: true,
+                avatar: true
+              }
+            }
+          }
+        },
       },
     });
+    // create user joined message
+   const joinedMessage = await prisma.message.create({
+      data: {
+        chatId,
+        body: `${username} joined the group chat!`,
+        senderId: userId,
+        type: "SYSTEM",
+      },
+    })
+    const formattedGroupChat =  {     
+      ...updatedGroupChat,
+      // remove members property replace with avatars prop which is string[]
+       avatars: updatedGroupChat.members.map(member => member.user.avatar),
+       members: updatedGroupChat.members.slice(3).map(member => member.user.username)
+   };
     return res.status(200).json({
       message: "successfully added user to group chat!",
-      updatedGroupChat,
+      groupChat: formattedGroupChat,
+      joinedMessage
     });
   } catch (err) {
     next(err);
@@ -592,8 +695,20 @@ const addMembers = async (req: Request, res: Response, next: NextFunction) => {
  */
 const leaveChat = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.body;
+    const clerkId = req.auth.userId;
     const { chatId } = req.params;
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId
+      },
+      select: {
+        id: true
+      }
+    });
+    if(user === null){
+      throw new Error("user not found!")
+    }
+    const userId = user?.id;
     const groupChat = await prisma.chat.findUnique({
       where: {
         id: chatId,
@@ -606,19 +721,22 @@ const leaveChat = async (req: Request, res: Response, next: NextFunction) => {
       },
     });
     if (groupChat === null) {
-      return res
-        .status(400)
-        .json({
-          message: "user has left or this is not a group chat!",
-          success: false,
-        });
+      return res.status(400).json({
+        message: "user has left or this is not a group chat!",
+        success: false,
+      });
     }
-    await prisma.member.delete({
+   const member = await prisma.member.findFirst({
       where: {
         chatId,
         userId,
       },
     });
+    await prisma.member.delete({
+      where: {
+        id: member?.id
+      }
+    })
     res.status(202).json({
       message: "succesfully left group chat!",
       success: true,
@@ -641,6 +759,9 @@ const makeAdmin = async (req: Request, res: Response, next: NextFunction) => {
     const { adminId, targetUserId } = req.body;
     const { chatId } = req.params;
     const isUser1Admin = await checkIfAdminOrOwner(adminId, chatId);
+    if(typeof targetUserId !== 'string'){
+      throw new Error("targett user id must be of type string")
+    }
     if (!isUser1Admin) {
       res.status(400).json({
         success: false,
@@ -656,10 +777,17 @@ const makeAdmin = async (req: Request, res: Response, next: NextFunction) => {
       });
       return;
     }
+    const foundMember = await prisma.member.findFirst({
+      where: {
+        AND: [
+          {chatId},
+          {userId: targetUserId}
+        ],
+      }
+    })
     const member = await prisma.member.update({
       where: {
-        chatId,
-        userId: targetUserId,
+        id: foundMember?.id
       },
       data: {
         role: "ADMIN",
@@ -739,7 +867,7 @@ const deleteGroupChat = async (
 };
 
 export {
-  getChatDetails,
+  getGroupChatMembers,
   getChatMessages,
   joinViaLink,
   editChat,

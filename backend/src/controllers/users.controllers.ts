@@ -1,6 +1,5 @@
 import { Response, Request, NextFunction } from "express";
 import { prisma } from "../config/connectDb";
-import { uploadFile } from "../utils/uploadFile";
 import clerkClient from "@clerk/clerk-sdk-node";
 /**
  * @method GET
@@ -10,7 +9,9 @@ import clerkClient from "@clerk/clerk-sdk-node";
 const getProfile = async (req: Request, res: Response, next:NextFunction) => {
   try {
     //const { userId } = req.params;
+    console.log("executing")
     const clerkId = req.auth.userId;
+    console.log("clerkId", clerkId);
     const foundUser = await prisma.user.findUnique({
       where: {
         clerkId
@@ -27,7 +28,7 @@ const getProfile = async (req: Request, res: Response, next:NextFunction) => {
       },
     });
     if (!foundUser) {
-      return res.status(400).json({
+      return res.status(200).json({
         message: "profile does not exist",
         success: false,
         user: null
@@ -52,11 +53,12 @@ const getProfile = async (req: Request, res: Response, next:NextFunction) => {
 /**
  * @method GET
  * @description gets user's in the db! apart from logged in use
- * @route /api/v1/users/
+ * @route /api/v1/users?memberInfo=true
  */
 const getUsers = async(req:Request, res:Response, next:NextFunction) => {
   try{
     const clerkId = req.auth.userId;
+    const {memberInfo} = req.query;
     const users = await prisma.user.findMany({
       where : {
         NOT : {
@@ -64,10 +66,19 @@ const getUsers = async(req:Request, res:Response, next:NextFunction) => {
         }
       }
     });
+    let formattedMemberInfo;
+    if(memberInfo) {
+      formattedMemberInfo = users.map((user) => {
+        return {
+          username: user.username,
+          id: user.id
+        }
+      })
+    }
    return res.status(200).json({
       success: true,
       message: "succesfully retrieved users",
-      users
+      users: memberInfo ? formattedMemberInfo : users
     })
   }
   catch(err){
@@ -81,8 +92,21 @@ const getUsers = async(req:Request, res:Response, next:NextFunction) => {
  */
 const getUserChats = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
-    // handle getting member data for private message display
+    const clerkId = req.auth.userId;
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (!user) {
+      return res.status(404).json({
+        message: "user not found!",
+      });
+    }
+    const userId = user.id;
    const chats = await prisma.chat.findMany({
       where: {
         members: {
@@ -91,27 +115,26 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
           },
         },
       },
-      include: {
+      select: {
+        id: true,
+        isGroup: true,
+        name: true,
+        description: true,
+        inviteCode: true,
         members: {
           take: 3,
-          where : {
-            userId : {
-              not: userId 
-            }
-          },
           select: {
-            user: true
-          },
-          include : {
             user: {
-              select : {
-                avatar : true,
+              select:{
+                avatar: true,
                 username: true,
-                id:true,
-                lastSeen:true
+                lastSeen: true,
+                id: true,
+                bio: true,
+                email: true
               }
             }
-          }
+          },
         },
         message: {
           take: 1,
@@ -121,22 +144,51 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
           select: {
             body: true,
             createdAt: true,
-          },
-          include: {
-            readBy: {
-              select: {
-                userId: true,
-              },
-            },
+            readByIds: true,
+            type: true,
           },
         },
       }
     });
-    //console.log(chats[0].)
+    // if it is not a group chat get the member and username avatras that do not belong to the requesting user
+    const formattedChats = chats.map((chat) => {
+      let members = chat.members;
+      let name = chat.name;
+      let lastSeen = new Date();
+      let email,bio;
+      if(!chat.isGroup){
+        members = chat.members.filter((member) => member.user.id !== userId);
+        name = members.length > 0 ? members[0].user.username : "Chatly User";
+        lastSeen = members[0].user.lastSeen;
+        email = members[0].user.email;
+        bio = members[0].user.bio;
+      }
+    return  {
+        id: chat.id,
+        isGroup: chat.isGroup,
+        name,
+        message: chat.message[0] ?? { 
+            createdAt: new Date(),
+            body: null,
+            type:'TEXT',
+            readByIds:[]
+      
+        },
+        avatars: members.map((member) => member.user.avatar),
+        members: members.map(member => member.user.username),
+        lastSeen,
+        email,
+        bio,
+        inviteCode: chat?.inviteCode ?? null,
+        description: chat.description,
+      };
+     
+    });
+    console.log(JSON.stringify(formattedChats))
     return res.status(200).json({
       success: true,
-      chats,
-      message: "successfully got user's chats",
+      chats: formattedChats,
+      message: "successfully retrieved user's chats",
     });
   } catch (err) {
     next(err);

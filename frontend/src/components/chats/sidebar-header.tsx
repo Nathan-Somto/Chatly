@@ -2,7 +2,7 @@ import {
   ChevronLeft,
   GlobeIcon,
   Loader,
-  LucideUsers2,
+  MoreHorizontalIcon,
   SearchIcon,
   UserPlus2,
 } from "lucide-react";
@@ -106,7 +106,7 @@ function SidebarHeader({
               size={"icon"}
               className="rounded-full bg-neutral-200 hover:opacity-50 dark:bg-neutral-700 border-2"
             >
-              <LucideUsers2 />
+             <MoreHorizontalIcon/>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="py-3 space-y-2">

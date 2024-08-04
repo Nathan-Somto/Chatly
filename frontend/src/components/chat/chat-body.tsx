@@ -14,6 +14,7 @@ import { useGetQuery } from "@/hooks/query/useGetQuery";
 import { useParams } from "react-router-dom";
 import { useProfileStore } from "@/hooks/useProfile";
 import Loader from "../ui/loader";
+import { useActiveChat } from "@/hooks/useActiveChat";
 
 function ChatBody() {
   const [openImgModal, setOpenImgModal] = useState(false);
@@ -21,6 +22,7 @@ function ChatBody() {
   const { theme } = useTheme();
   const { chatId } = useParams<{ chatId: string }>();
   const { messages, addMessage, setMessages } = useMessages();
+  const {activeChat} = useActiveChat();
   const { socket } = useSocketStore();
   const { profile } = useProfileStore();
   const bodyRef = useRef<HTMLElement>(null);
@@ -33,6 +35,7 @@ function ChatBody() {
       enabled: true,
       route: `/chats/${chatId}/messages`,
       queryKey: ["messages", chatId],
+      refetchOnMount: true
     });
   // get the messages from the server
   useEffect(() => {
@@ -48,9 +51,14 @@ function ChatBody() {
       const handleMessage = (data: MessageEmit) => {
         // update the messages state
         // check if the message is already in state.
-        console.log("data", data);
         const found = messages.find((item) => item.id === data.message.id);
-        console.log("found", found);
+        // if the chat info of the new message does not match the active chat id don't add it to the state
+        if (activeChat?.dmInfo && data.chatInfo.isGroup && activeChat?.dmInfo?.id !== data.message.chatId) {
+          return;
+        }
+        if(activeChat?.groupInfo && !data.chatInfo.isGroup && activeChat?.groupInfo?.id !== data.message.chatId) {
+          return;
+        }
         if (found) {
           return;
         }
@@ -61,7 +69,7 @@ function ChatBody() {
         socket.off("newMessage", handleMessage);
       };
     }
-  }, [socket, messages]);
+  }, [socket, messages, activeChat]);
   // on new messages scroll to the bottom of the page if the user is not there
   useEffect(() => {
     if (bodyRef.current) {

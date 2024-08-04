@@ -11,6 +11,7 @@ type Props = Message & {
 };
 import LinkifiedText from "./linkifiedText";
 import { useProfileStore } from "@/hooks/useProfile";
+import ProfileBox from "./profile-box";
 
 function Message({
   message: {
@@ -57,6 +58,11 @@ function Message({
         id={id}
       >
         {!isOwn && (
+          <ProfileBox
+          avatar={avatar}
+          username={username}
+          id={senderId}
+          >
           <figure
             className={cn(
               "rounded-full self-end h-10 w-10 flex-shrink-0 overflow-hidden",
@@ -70,6 +76,7 @@ function Message({
               className="h-full w-full object-center object-cover"
             />
           </figure>
+          </ProfileBox>
         )}
         <div className="">
           <div

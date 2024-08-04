@@ -5,12 +5,19 @@ import {
   ReplyIcon,
   SendHorizonalIcon,
   SmileIcon,
-  X
+  X,
 } from "lucide-react";
 import { Button } from "../ui/button";
-import { useMemo, useState, useRef, memo, useTransition, useEffect } from "react";
+import {
+  useMemo,
+  useState,
+  useRef,
+  memo,
+  useTransition,
+  useEffect,
+} from "react";
 import { useAutoGrowTextarea } from "@/hooks/useAutoGrowTextarea";
-import { cn } from "@/lib/utils";
+import { cn, displayError } from "@/lib/utils";
 import { ModifiedMessage, useMessages } from "@/hooks/useMessages";
 import { useParams } from "react-router-dom";
 import { v4 } from "uuid";
@@ -24,20 +31,31 @@ import { useTheme } from "../wrappers/theme-provider";
 import { useMessageOptions } from "@/hooks/useMessageOptions";
 import { useMutate } from "@/hooks/query/useMutate";
 import { useProfileStore } from "@/hooks/useProfile";
-import { CreateMessagePayload, EditMessagePayload, MessageEmit } from "@/api-types";
+import {
+  CreateMessagePayload,
+  EditMessagePayload,
+  MessageEmit,
+} from "@/api-types";
 import useSocketStore from "@/hooks/useSocket";
 import { useActiveChat } from "@/hooks/useActiveChat";
 import { AxiosResponse } from "axios";
+import UploadWidget from "../common/upload-widget";
+import toast from "react-hot-toast";
 const MemoEmojiPicker = memo(({ ...props }: PickerProps) => (
   <EmojiPicker {...props} />
 ));
 
 function MessageForm() {
-  const {messageOptions:{editMessage, replyTo}, onReply, onEdit} = useMessageOptions()
+  const {
+    messageOptions: { editMessage, replyTo },
+    onReply,
+    onEdit,
+  } = useMessageOptions();
   const { chatId } = useParams();
-  const [body, setBody] = useState('');
+  const [body, setBody] = useState("");
   const hasStartedTyping = body.length > 0;
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const resourceUrlOverlayRef = useRef<HTMLDivElement | null>(null);
   const { textAreaRef } = useAutoGrowTextarea({ value: body });
   const [showEmojiPicker, setEmojiPicker] = useState<boolean>(false);
   const [_emojiPickerObject, setEmojiPickerObject] =
@@ -46,48 +64,65 @@ function MessageForm() {
   const { theme } = useTheme();
   const isReply = replyTo !== null;
   const isEditting = editMessage !== null;
-  const { profile} = useProfileStore();
+  const { profile } = useProfileStore();
   const { addMessage, messages, setMessages } = useMessages();
-  const {socket} = useSocketStore();
-  const {activeChat} = useActiveChat();
-  useEffect(()=> {
-    if(editMessage?.text){
-      setBody(editMessage.text)
+  // "http://res.cloudinary.com/dvw2zx08k/image/upload/v1722588927/media/chats/somto-profile-pic_iv1gcq.png"
+  const [resourceUrl, setResourceUrl] = useState<string | null>(
+    null
+  );
+  const [resource_type, setResourceType] = useState<"image" | "video">("image");
+  const { socket } = useSocketStore();
+  const { activeChat } = useActiveChat();
+  useEffect(() => {
+    if (textAreaRef.current && resourceUrlOverlayRef.current) {
+      resourceUrlOverlayRef.current.style.height = `calc(100vh - (${textAreaRef.current.clientHeight}px + 27px))`;
     }
-  },[editMessage])
-  function onSuccess(response: AxiosResponse<any, any>){
+  }, [body]);
+  useEffect(() => {
+    if (editMessage?.text) {
+      setBody(editMessage.text);
+    }
+  }, [editMessage]);
+  function onSuccess(response: AxiosResponse<any, any>) {
     // find the message which is sending and update it to sent
-    const foundMessage = messages.find(message => message.sending);
-    if(foundMessage){
+    const foundMessage = messages.find((message) => message.sending);
+    if (foundMessage) {
       const messagesCopy = messages.slice();
       foundMessage.id = response.data?.message?.id;
       foundMessage.sending = false;
       setMessages(messagesCopy);
     }
   }
-  function onError(){
+  function onError() {
     // find the message which is sending and update it to failed
-    const foundMessage = messages.find(message => message.sending);
-    if(foundMessage){
+    const foundMessage = messages.find((message) => message.sending);
+    if (foundMessage) {
       const messagesCopy = messages.slice();
       foundMessage.sending = false;
       foundMessage.failed = true;
       setMessages(messagesCopy);
     }
   }
-  const {mutate: postMutate, isPending: isPosting} = useMutate({
+  function onUploadComplete(result: string, resource_type: "image" | "video") {
+    setResourceUrl(result);
+    setResourceType(resource_type);
+  }
+  function onUploadError(err: any) {
+    toast.error(displayError(err, "could not upload resource"));
+  }
+  const { mutate: postMutate, isPending: isPosting } = useMutate({
     defaultMessage: "Failed to send message",
     method: "post",
     route: "/messages",
     onSuccess,
     onError,
-    displayToast: false
+    displayToast: false,
   });
-  const {mutate: patchMutate, isPending: isPatching} = useMutate({
+  const { mutate: patchMutate, isPending: isPatching } = useMutate({
     defaultMessage: "Failed to edit message",
     method: "patch",
     route: `/messages/${editMessage?.id}`,
-  })
+  });
   const disableBtn = isPosting || isPatching;
   const hasReachedMaxHeight = useMemo(() => {
     if (textAreaRef.current) {
@@ -95,16 +130,22 @@ function MessageForm() {
     }
     return false;
   }, [body]);
-  function closeOption(){
+  function closeOption() {
     onReply(null);
     onEdit(null);
-    if(isEditting){
-      setBody('');
+    if (isEditting) {
+      setBody("");
     }
   }
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (body.length === 0 || !profile || !chatId) return;
+    const resource_type_map : {
+      [key : string]: MessageType
+    } = {
+      "image": 'IMAGE',
+      "video": "VIDEO"
+    }
     try {
       let optimisticMessage: ModifiedMessage = {
         Sender: {
@@ -119,13 +160,13 @@ function MessageForm() {
         },
         body,
         chatId,
-        id:v4(),
+        id: v4(),
         createdAt: new Date(),
         isEditted: false,
         readByIds: [],
-        resourceUrl: null,
+        resourceUrl,
         senderId: profile?.id ?? null,
-        type: "TEXT",
+        type: resourceUrl !== null ? resource_type_map[resource_type] : "TEXT",
         sending: true,
         isReply,
         parentMessage: null,
@@ -135,66 +176,72 @@ function MessageForm() {
         optimisticMessage.parentMessage = {
           body: replyTo?.text,
           avatar: replyTo?.avatar,
-          username: replyTo?.username
+          username: replyTo?.username,
         };
       }
       // optimistic update with sending;
-      if(isEditting){
+      if (isEditting) {
         // find the message
-        const messagesCopy = messages.slice()
+        const messagesCopy = messages.slice();
         const foundMessage = messagesCopy[editMessage.index];
         foundMessage.isEditted = true;
         foundMessage.body = body;
         foundMessage.sending = true;
         optimisticMessage = foundMessage;
         setMessages(messagesCopy);
-      }else {
+      } else {
         addMessage(optimisticMessage);
       }
       // store in db;
-      let chatInfo = {
+      let chatInfo: MessageEmit['chatInfo'] = {
         id: chatId,
         isGroup: activeChat?.groupInfo?.isGroup ?? false,
         name: activeChat?.dmInfo?.username ?? activeChat?.groupInfo?.name ?? "",
         // ensure avatars is always string[]
-        avatars: activeChat?.groupInfo?.avatars ?? [activeChat?.dmInfo?.avatar ?? ""],
-      }
+        avatars: activeChat?.groupInfo?.avatars ?? [
+          activeChat?.dmInfo?.avatar ?? "",
+        ],
+        description: activeChat?.groupInfo?.description,
+        inviteCode: activeChat?.groupInfo?.inviteCode
+      };
       let createMessagePayload: CreateMessagePayload = {
         body,
         chatId,
-        // add the parent id to the message payload 
+        // add the parent id to the message payload
         parentMessageId: replyTo?.parentId ?? null,
         resourceUrl: null,
         userId: profile.id,
-        type: "TEXT"
-      }
+        type: "TEXT",
+      };
       let editMessagePayload: EditMessagePayload = {
         body,
         chatId,
-        userId: profile.id
-      }
-      if(isEditting){
+        userId: profile.id,
+      };
+      if (isEditting) {
         patchMutate(editMessagePayload);
-      }else {
+      } else {
         postMutate(createMessagePayload);
       }
       // emit chat through socket.io;
       let messageEmit: MessageEmit = {
         chatInfo,
-        message: optimisticMessage
-      }
+        message: optimisticMessage,
+      };
       delete (messageEmit.message as ModifiedMessage).sending;
-      if(isEditting){
-      }else {
+      if (isEditting) {
+      } else {
         socket?.emit("sendMessage", messageEmit);
       }
       // change state to sent via the onSuccess;
-      if(isEditting || isReply){
-        closeOption()
+      if (isEditting || isReply) {
+        closeOption();
       }
       setBody("");
+      setResourceUrl(null);
+      setResourceType("image");
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
   }
   function handleEmojiClick(emojiDataObj: EmojiClickData, _: MouseEvent) {
@@ -210,7 +257,7 @@ function MessageForm() {
     });
   }
   return (
-    <div className="bottom-0 justify-between bg-gray-100 dark:bg-[#17191C] fixed w-full p-3 min-h-12 lg:w-[calc(100%-350px)] lg:ml-[350px] inset-x-0 border border-t ">
+    <div className="bottom-0 z-[10] justify-between bg-gray-100 dark:bg-[#17191C] fixed w-full p-3 min-h-12 lg:w-[calc(100%-350px)] lg:ml-[350px] inset-x-0 border border-t ">
       {(replyTo !== null || editMessage !== null) && (
         <div className="flex gap-x-2.5 relative mb-3">
           <div className="text-brand-p1/80">
@@ -228,28 +275,67 @@ function MessageForm() {
                 ? "Edit Message"
                 : null}
             </p>
-            <p className="line-clamp-1 text-sm">{editMessage?.text ?? replyTo?.text}</p>
+            <p className="line-clamp-1 text-sm">
+              {editMessage?.text ?? replyTo?.text}
+            </p>
           </div>
-          <Button onClick={closeOption} size={'icon'} className="absolute h-7 w-7 top-0 right-2 dark:text-gray-200 text-gray-800" variant={'ghost'}>
-            <X className="h-5 w-5"/>
+          <Button
+            onClick={closeOption}
+            size={"icon"}
+            className="absolute h-7 w-7 top-0 right-2 dark:text-gray-200 text-gray-800"
+            variant={"ghost"}
+          >
+            <X className="h-5 w-5" />
           </Button>
         </div>
       )}
+      <div
+        className={cn(
+          "absolute top-[-350px] left-0 z-[50]",
+          !showEmojiPicker && "hidden"
+        )}
+      >
+        <MemoEmojiPicker
+          emojiStyle={EmojiStyle.FACEBOOK}
+          onEmojiClick={handleEmojiClick}
+          className="bg-background"
+          height={350}
+          theme={theme === "dark" ? Theme.DARK : Theme.LIGHT}
+        />
+      </div>
+      {resourceUrl !== null && (
         <div
-          className={cn(
-            "absolute top-[-350px] left-0 z-[50]",
-            !showEmojiPicker && "hidden"
-          )}
+          ref={resourceUrlOverlayRef}
+          className="fixed top-0 h-[calc(100vh-67px)] lg:w-[calc(100%-350px)]  lg:ml-[350px] left-0 right-0 p-0 w-full bg-black/50 z-[20] bg-opacity-50"
         >
-          <MemoEmojiPicker
-            emojiStyle={EmojiStyle.FACEBOOK}
-            onEmojiClick={handleEmojiClick}
-            className="bg-background"
-            height={350}
-            theme={theme === "dark" ? Theme.DARK : Theme.LIGHT}
-          />
+          <div className="absolute rounded-md  overflow-hidden hover:opacity-80 ease-in top-2/4 left-2/4 -translate-x-2/4 -translate-y-2/4 z-[50] h-[350px] w-[350px]">
+            <Button
+              onClick={() => setResourceUrl(null)}
+              size={"icon"}
+              className="absolute h-7 w-7 top-2 right-2 dark:text-gray-200 bg-gray-800 rounded-full"
+              variant={"ghost"}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            {resource_type === "image" ? (
+              <img
+                src={resourceUrl}
+                className="w-full h-full object-cover mx-auto"
+              />
+            ) : (
+              <video
+                src={resourceUrl}
+                className="w-full h-full object-cover mx-auto"
+                controls
+              />
+            )}
+          </div>
         </div>
-      <form onSubmit={onSubmit} className="flex items-center justify-between w-full">
+      )}
+      <form
+        onSubmit={onSubmit}
+        className="flex items-center justify-between w-full relative z-[10000]"
+      >
         {/* Emoji Picker */}
         <Button
           type="button"
@@ -268,17 +354,22 @@ function MessageForm() {
           value={body}
           onChange={(e) => {
             setBody(e.target.value);
-            if (textAreaRef.current) {
+            if (textAreaRef.current && resourceUrlOverlayRef.current) {
               if (
                 textAreaRef.current.clientHeight >
                 textAreaRef.current.scrollHeight
               ) {
                 textAreaRef.current.style.height = `40px`;
+                resourceUrlOverlayRef.current.style.height = `calc(100vh - 70px)`;
               }
             }
           }}
           onKeyDown={(e) => {
-            if (e.code === "Enter" && buttonRef.current !== null && !disableBtn) {
+            if (
+              e.code === "Enter" &&
+              buttonRef.current !== null &&
+              !disableBtn
+            ) {
               buttonRef.current.click();
             }
           }}
@@ -301,9 +392,14 @@ function MessageForm() {
             <Button type="button" variant={"ghost"}>
               <PaperclipIcon />
             </Button>
-            <Button type="button" variant={"ghost"}>
-              <CameraIcon />
-            </Button>
+            <UploadWidget
+              onUploadComplete={onUploadComplete}
+              onError={onUploadError}
+            >
+              <Button type="button" variant={"ghost"}>
+                <CameraIcon />
+              </Button>
+            </UploadWidget>
           </div>
         )}
       </form>

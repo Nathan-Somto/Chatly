@@ -30,7 +30,7 @@ model Member {
   userId          String     @db.ObjectId
   role            MemberRole @default(MEMBER)
   Chat            Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  chatId          String     @unique @db.ObjectId
+  chatId          String     @db.ObjectId
   joinedAt        DateTime
   readMessages    Message[]  @relation(name: "ReadBy", references: [id], fields: [readMessagesIds])
   readMessagesIds String[]   @db.ObjectId
@@ -82,4 +82,5 @@ enum MessageType {
   AUDIO
   IMAGE
   VIDEO
+  SYSTEM
 }

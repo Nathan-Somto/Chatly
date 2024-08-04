@@ -17,12 +17,8 @@ export default function ChatsRedirect() {
     enabled: true,
     queryKey: ["profile"],
     route: `/users/profile`,
-    displayToast: true,
+    displayToast: false,
   });
-  if (isError) {
-    <ErrorMessage title="Failed to load user's chats" refetch={refetch} />;
-  }
-
   useEffect(() => {
     const data = response?.data;
     if (data) {
@@ -35,6 +31,9 @@ export default function ChatsRedirect() {
       }
     }
   }, [response]);
+  if (isError) {
+   return <ErrorMessage title="Failed to load user's chats" refetch={refetch} />;
+  }
   return (
     <LogoLoader>
       <P className="text-center text-lg text-brand-p1 font-semibold mt-2">

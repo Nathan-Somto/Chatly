@@ -1,9 +1,15 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import {v4 as uuidv4} from 'uuid'
 import { AxiosError } from "axios";
 import { mainApi } from "./axios";
 import toast from "react-hot-toast";
+export function article(name: string) {
+  // based on first character of name returns a or an
+  // use regex and in case i have an empty string return the empty string
+  if(name.length === 0) return "";
+  const firstLetter = name[0].toLowerCase();
+  return /aeiou/.test(firstLetter) ? "an" : "a";
+}
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -21,9 +27,7 @@ export function formatLastSeen (lastSeen: Date | string | number): ({
   const lastSeenDate = typeof lastSeen === 'string' || typeof lastSeen === 'number' ? new Date(lastSeen) : lastSeen;
   if(!(lastSeenDate instanceof Date) ) return obj;
   const lastSeenTime = lastSeenDate.getTime();
-  console.log("")
   const diff = (now - lastSeenTime)
-  console.log(diff);
   if(diff  <= seconds){
     obj.lastSeen = 'Online';
     obj.isOnline = true;
@@ -41,10 +45,6 @@ export function formatLastSeen (lastSeen: Date | string | number): ({
   }
   obj.lastSeen = `last seen at ${lastSeenDate.toDateString()}`;
   return obj;
-}
-export async function findConversation(userId: string){
-  // checks the backe
-  return new Promise((resolve) => setTimeout(() => resolve(uuidv4()),3000));
 }
 export async function uploadFile(file: File): Promise<string | null> {
   const formData = new FormData();

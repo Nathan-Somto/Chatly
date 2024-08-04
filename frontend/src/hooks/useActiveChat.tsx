@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-// when i click a chat this is responsible for filling the chat header
-// this is also respondsible for setting messages, updating and deleting a message.
+// when i click a chat this is responsible for filling the chat header with the chat info
 export type ActiveChat = {
   groupInfo: {
     id: string;
@@ -9,14 +8,17 @@ export type ActiveChat = {
     name: string;
     avatars: string[];
     members?: string[];
+    description?: string | null; 
+    inviteCode?: string | null;
   } | null;
   dmInfo: {
     avatar: string;
     username: string;
     id: string;
     lastSeen: Date | undefined;
+    bio?: string | null;
+    email?: string | null;
   } | null;
-  //messages: Message[];
 } | null;
 interface ActiveChatState {
   activeChat: ActiveChat;

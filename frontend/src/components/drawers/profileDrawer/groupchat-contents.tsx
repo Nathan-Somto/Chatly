@@ -1,6 +1,7 @@
 import AvatarGroup from "@/components/common/avatar-group";
 import EditInput from "@/components/common/edit-input";
-import UserBox from "@/components/common/user-box";
+import UserGroupBox from "@/components/common/user-group-box";
+import UserBox from "@/components/common/user-group-box";
 import GroupChatModal from "@/components/modals/groupchat-modal";
 import { InviteModal } from "@/components/modals/invite-modal";
 import { Button } from "@/components/ui/button";
@@ -20,21 +21,15 @@ import {
   MoreHorizontal,
   ShieldCheckIcon,
   Trash2Icon,
-  UserPlus2,
   UserPlus2Icon,
   UsersIcon,
   XCircleIcon,
 } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-type PrivacyType = "PUBLC" | "PRIVATE";
+type PrivacyType = "PUBLIC" | "PRIVATE";
 type Props = {
-  members: {
-    user: {
-      username: string;
-      avatar: string;
-    };
-  }[];
+  avatars: string[];
   isOwner: boolean;
   canEdit: boolean;
   name: string;
@@ -45,7 +40,7 @@ type Props = {
   users: UserBox[];
 };
 export default function GroupChatContents({
-  members,
+  avatars,
   memberCount,
   canEdit,
   privacyType,
@@ -93,11 +88,10 @@ export default function GroupChatContents({
     setIsLoading(value);
   }
   function makeAdmin(index: number, role: Role) {
-    const localUsersCopy = localUsers.slice()
+    const localUsersCopy = localUsers.slice();
     if (role === "MEMBER") {
       localUsersCopy[index].role = "ADMIN";
-    }
-    else{
+    } else {
       localUsersCopy[index].role = "MEMBER";
     }
     setLocalUsers(localUsersCopy);
@@ -131,7 +125,7 @@ export default function GroupChatContents({
         )}
         <header className="border-b mb-5 mt-6 pb-3">
           <div className="mx-auto w-fit mb-3">
-            <AvatarGroup members={members} size={120} />
+            <AvatarGroup avatars={avatars} size={120} />
           </div>
           <P className="opacity-80 text-xs font-medium mt-1.5 text-[#383A47] dark:text-gray-300">
             {memberCount} Member{memberCount > 1 ? "s" : ""}
@@ -157,25 +151,25 @@ export default function GroupChatContents({
         </header>
         <div className="space-y-4">
           {canEdit && (
-          <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-100 font-medium">
-            <P className="flex items-center gap-5">
-              <span>
-                <EyeOff size={20} />
-              </span>{" "}
-              <span>Make Group Private</span>
-            </P>
-            <Switch
-              checked={values.privacyType === "PRIVATE"}
-              value={values.privacyType}
-              onCheckedChange={() => {
-                if (values.privacyType === "PRIVATE") {
-                  handleChange("privacyType", "PUBLIC");
-                  return;
-                }
-                handleChange("privacyType", "PRIVATE");
-              }}
-            />
-          </div>
+            <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-100 font-medium">
+              <P className="flex items-center gap-5">
+                <span>
+                  <EyeOff size={20} />
+                </span>{" "}
+                <span>Make Group Private</span>
+              </P>
+              <Switch
+                checked={values.privacyType === "PRIVATE"}
+                value={values.privacyType}
+                onCheckedChange={() => {
+                  if (values.privacyType === "PRIVATE") {
+                    handleChange("privacyType", "PUBLIC");
+                    return;
+                  }
+                  handleChange("privacyType", "PRIVATE");
+                }}
+              />
+            </div>
           )}
           <Button
             variant="outline"
@@ -197,7 +191,12 @@ export default function GroupChatContents({
             {/* Members list comes here! */}
             {localUsers.map((user, index) => (
               <div className="flex items-center gap-x-2" key={user.id}>
-                <UserBox {...user} showRole toggleLoading={toggleLoading} />
+                <UserGroupBox
+                  type="user"
+                  {...user}
+                  showRole
+                  toggleLoading={toggleLoading}
+                />
                 {canEdit && user.role !== "OWNER" && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { article, cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChatBoxType } from ".";
 import { useMemo } from "react";
@@ -11,15 +11,19 @@ function ChatBox({
   id,
   isGroup,
   name,
-  message: { body, createdAt, readByIds: readBy },
+  message: { body, createdAt, readByIds: readBy, type },
   avatars,
   lastSeen,
-  members
+  members,
+  bio,
+  email,
+  description,
+  inviteCode
 }: Props) {
   const setActiveChat = useActiveChat((state) => state.setActiveChat);
   const { pathname } = useLocation();
   const navigate = useNavigate();
- const {profile} = useProfileStore();
+  const { profile } = useProfileStore();
 
   const selected = pathname.includes(id);
   function handleClick() {
@@ -30,14 +34,18 @@ function ChatBox({
           username: name ?? "Chatly User",
           id,
           lastSeen: lastSeen,
+          email,
+          bio,
         };
     const groupInfo = isGroup
       ? {
           id,
           isGroup: true,
-          name: name ?? 'Group Chat',
+          name: name ?? "Group Chat",
           avatars,
-          members
+          members,
+          description: description ?? "No Decription",
+          inviteCode: inviteCode ?? null
         }
       : null;
     setActiveChat({
@@ -49,6 +57,7 @@ function ChatBox({
   const hasSeen = useMemo(() => {
     return readBy.some((value) => value === profile?.id);
   }, [readBy]);
+  const lowercaseType = type.toLowerCase();
   return (
     <div
       onClick={handleClick}
@@ -74,9 +83,9 @@ function ChatBox({
         <AvatarGroup avatars={avatars} />
       ) : (
         <AvatarUser
-        src={avatars?.length > 0 ? avatars[0] : null}
-         alt="user's avatar"
-         size={48}
+          src={avatars?.length > 0 ? avatars[0] : null}
+          alt="user's avatar"
+          size={48}
         />
       )}
       <div className="min-w-0 flex-1">
@@ -84,7 +93,7 @@ function ChatBox({
           <span className="absolute inset-0" aria-hidden="true" />
           <div className="flex justify-between items-center mb-1">
             <p className="text-md font-medium text-gray-900 truncate dark:text-gray-100">
-              { name }
+              {name}
             </p>
             {createdAt && (
               <p
@@ -109,7 +118,11 @@ function ChatBox({
                 : "text-black font-medium dark:text-gray-400"
             )}
           >
-            {body}
+            {type === "TEXT"
+              ? body === null
+                ? "start a conversation!"
+                : body
+              : `sent ${article(lowercaseType)}${lowercaseType}!`}
           </p>
         </div>
       </div>

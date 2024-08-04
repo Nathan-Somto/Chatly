@@ -10,8 +10,12 @@ import useSocketStore from "@/hooks/useSocket";
 import { MessageEmit } from "@/api-types";
 import { MoreHorizontalIcon } from "lucide-react";
 import { useProfileStore } from "@/hooks/useProfile";
+import { useQueryClient } from "@tanstack/react-query";
+import { useActiveChat } from "@/hooks/useActiveChat";
 function ChatList() {
+  const queryClient = useQueryClient()
   const { profile } = useProfileStore();
+  const {activeChat, updateLastSeen} = useActiveChat();
   // fetch all the chats for the user
   const { chatList, setChatList } = useChatStore();
   const {
@@ -34,18 +38,24 @@ function ChatList() {
       const foundChat = chatList.findIndex(
         (chat) => chat.id === data.chatInfo.id
       );
+      //  if the chat is already in the list update it and take it to the top of list else just add to the top of he list
       if (foundChat !== -1) {
-        chatListCopy[foundChat].message = data.message;
-      } else {
-        chatListCopy.unshift({
-          id: data.chatInfo.id,
-          isGroup: data.chatInfo.isGroup,
-          name: data.chatInfo.name,
-          message: data.message,
-          avatars: data.chatInfo.avatars,
-          lastSeen: data.chatInfo.lastSeen,
-        });
+        chatListCopy.splice(foundChat, 1);
       }
+      chatListCopy.unshift({
+        id: data.chatInfo.id,
+        isGroup: data.chatInfo.isGroup,
+        name: data.chatInfo.name,
+        message: data.message,
+        avatars: data.chatInfo.avatars,
+        lastSeen: data.chatInfo.lastSeen,
+      });
+      // check if it is the active chat and it is a dm if so update the last seen
+      if(activeChat?.dmInfo?.id === data.chatInfo.id && !data.chatInfo.isGroup ){
+        updateLastSeen(data.chatInfo.lastSeen ?? new Date());
+      }
+      // to remove stale data!
+      queryClient.invalidateQueries({ queryKey: ['messages', data.chatInfo.id], exact: true });
       setChatList(chatListCopy);
     }
     if(socket){

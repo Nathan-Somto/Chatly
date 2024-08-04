@@ -12,5 +12,9 @@ type ChatBoxType =
         avatars: string[];
         lastSeen?: Date;
         members?:string[];
+        description?:string | null;
+        email?:string | null;
+        bio?:string | null;
+        inviteCode?: string | null;
     }
 export {type ChatBoxType}

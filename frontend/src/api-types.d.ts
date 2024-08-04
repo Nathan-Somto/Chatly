@@ -56,6 +56,7 @@ export type SearchDataResponse = {
   users: UserBox[],
   groupChats?: GroupBox & {isGroup: boolean}[]
 }
+export type GetUsersResponse = Pick<SearchDataResponse, 'users'>;
 /** Ends Here **/
 
 /** Socket IO types **/

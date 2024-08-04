@@ -2,27 +2,34 @@ import { useState } from "react";
 import ListContainer from "../common/list-container";
 import Loader from "../ui/loader";
 import UserGroupBox from "../common/user-group-box";
-import Search from "@/services/search";
 import { ErrorMessage } from "../common/error-message";
+import { useGetQuery } from "@/hooks/query/useGetQuery";
+import { GetUsersResponse } from "@/api-types";
 
 export default function DiscoverList() {
   const [isLoading, setIsLoading] = useState(false);
   function toggleLoading(value: boolean) {
     setIsLoading(value);
   }
-  const { searchData, isPending, isError, refetch } = Search({
-    keyword: "",
-    usersOnly: true,
+  const {
+    data: response,
+    isPending,
+    isError,
+    refetch,
+  } = useGetQuery<GetUsersResponse>({
+    enabled: true,
+    queryKey: ["discover"],
+    route: "users",
+    displayToast: true,
   });
-
   if (isError) {
-    <ErrorMessage refetch={refetch} title="Failed to Find People" />;
+    <ErrorMessage refetch={refetch} title="Failed to Find Users" />;
   }
   return (
     <>
       <ListContainer>
         <>
-          {searchData?.data?.users?.map((item) => (
+          {response?.data?.users?.map((item) => (
             <UserGroupBox
               type="user"
               avatar={item.avatar}

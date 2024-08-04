@@ -22,13 +22,13 @@ function App() {
         <Suspense fallback={<Loader/>}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/onboarding/*" element={<Onboarding/>} />
-          <Route path="/chats-redirect/*" element={<ChatsRedirect/>}/>
           <Route element={<AuthLayout/>}>
           <Route path="/sign-in/*" element={<SignIn/>}/>
           <Route path="/sign-up/*" element={<SignUp/>}/>
           </Route>
           <Route element={<ProtectedRoute/>}>
+          <Route path="/onboarding/*" element={<Onboarding/>} />
+          <Route path="/chats-redirect/*" element={<ChatsRedirect/>}/>
           <Route path="/discover" element={<Discover/>}/>
           <Route path="/:userId/chats" element={<ChatsLayout/>}>
             <Route  index element={<Chats/>} />

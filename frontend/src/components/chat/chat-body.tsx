@@ -6,7 +6,6 @@ import { useMessages } from "@/hooks/useMessages";
 import { v4 as uuidv4 } from "uuid";
 import { useEffect, useRef, useState } from "react";
 import MediaViewModal from "../modals/media-viewer-modal";
-import DeleteMessageModal from "../modals/delete-message-modal";
 import useSocketStore from "@/hooks/useSocket";
 import { GetMessagesResponse, MessageEmit } from "@/api-types";
 import Message from "./message";
@@ -15,6 +14,8 @@ import { useParams } from "react-router-dom";
 import { useProfileStore } from "@/hooks/useProfile";
 import Loader from "../ui/loader";
 import { useActiveChat } from "@/hooks/useActiveChat";
+import { useMessageOptions } from "@/hooks/useMessageOptions";
+import DeleteModal from "../modals/delete-modal";
 
 function ChatBody() {
   const [openImgModal, setOpenImgModal] = useState(false);
@@ -22,7 +23,7 @@ function ChatBody() {
   const { theme } = useTheme();
   const { chatId } = useParams<{ chatId: string }>();
   const { messages, addMessage, setMessages } = useMessages();
-  const {activeChat} = useActiveChat();
+  const { activeChat } = useActiveChat();
   const { socket } = useSocketStore();
   const { profile } = useProfileStore();
   const bodyRef = useRef<HTMLElement>(null);
@@ -35,8 +36,14 @@ function ChatBody() {
       enabled: true,
       route: `/chats/${chatId}/messages`,
       queryKey: ["messages", chatId],
-      refetchOnMount: true
+      refetchOnMount: true,
     });
+  const {
+    toggleDeleteModal,
+    messageOptions: {
+      deleteModal: { id, open },
+    },
+  } = useMessageOptions();
   // get the messages from the server
   useEffect(() => {
     const data = response?.data;
@@ -53,10 +60,18 @@ function ChatBody() {
         // check if the message is already in state.
         const found = messages.find((item) => item.id === data.message.id);
         // if the chat info of the new message does not match the active chat id don't add it to the state
-        if (activeChat?.dmInfo && data.chatInfo.isGroup && activeChat?.dmInfo?.id !== data.message.chatId) {
+        if (
+          activeChat?.dmInfo &&
+          data.chatInfo.isGroup &&
+          activeChat?.dmInfo?.id !== data.message.chatId
+        ) {
           return;
         }
-        if(activeChat?.groupInfo && !data.chatInfo.isGroup && activeChat?.groupInfo?.id !== data.message.chatId) {
+        if (
+          activeChat?.groupInfo &&
+          !data.chatInfo.isGroup &&
+          activeChat?.groupInfo?.id !== data.message.chatId
+        ) {
           return;
         }
         if (found) {
@@ -79,6 +94,20 @@ function ChatBody() {
       });
     }
   }, [messages]);
+  async function handleDelete() {
+    // remove from the store
+    console.log("delete modal: ", id);
+    const messageCopy = messages.filter((message) => message.id !== id);
+    setMessages(messageCopy);
+    // remove from the server
+    // emit the delete message event
+  }
+  function openDeleteModal(val: boolean) {
+    toggleDeleteModal({
+      id: val ? id : "",
+      open: val,
+    });
+  }
   return (
     <>
       <section
@@ -92,8 +121,8 @@ function ChatBody() {
         className="mt-[75px] min-h-screen mb-16 relative"
       >
         {isFetching ? (
-          <div className="h-full flex items-center justify-center">
-            <Loader withBackground={false} size='lg'/>
+          <div className="h-screen flex items-center justify-center">
+            <Loader withBackground={false} size="sm" />
           </div>
         ) : messages.length == 0 ? (
           <div className="h-screen grid place-items-center content-center">
@@ -111,7 +140,7 @@ function ChatBody() {
           messages.map((item, index) => {
             if (item.type === "SYSTEM") {
               return (
-                <div key={index} className="flex justify-center my-5">
+                <div key={index} className="flex justify-center my-8">
                   <P className="bg-brand-p1/80 dark:bg-[rgb(60,116,161)]/80 text-white py-2 px-4 rounded-3xl">
                     {item.body}
                   </P>
@@ -136,7 +165,14 @@ function ChatBody() {
         open={openImgModal}
         setOpen={setOpenImgModal}
       />
-      <DeleteMessageModal />
+      <DeleteModal
+        deleteFn={handleDelete}
+        open={open}
+        onOpenChange={openDeleteModal}
+        isPending={false}
+        title="Delete Message"
+        message="Are you sure you want to delete this message?"
+      />
     </>
   );
 }

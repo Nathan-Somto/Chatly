@@ -6,7 +6,9 @@ export function useGetToken() {
   const { getToken,isSignedIn } = useAuth();
   const [token, setToken] = React.useState<string | null>(null);
   async function refetchToken() {
+    console.log("refetching...")
     const gottenToken = await getToken();
+    console.log("gotten token", gottenToken)
     setToken(gottenToken);
   }
   React.useEffect(() => {

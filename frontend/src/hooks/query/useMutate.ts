@@ -4,25 +4,31 @@ import { displayError } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { mainApi } from "@/lib/axios";
 import { useGetToken } from "./useGetToken";
-import { AxiosError } from "axios";
-
+import { AxiosError, AxiosRequestConfig} from "axios";
 function useMutate<T>({
   onSuccess,
-  defaultMessage,
+  defaultMessage="something went wrong!",
   route,
   method = "post",
   onSettled,
   onError,
   displayToast = true,
+  reqOptions= {}
 }: MutateType<T>) {
   const { token, refetchToken } = useGetToken();
-  const { isPending, isSuccess, mutate, mutateAsync } = useMutation({
-    mutationFn: (data: T) =>
-      mainApi[method](route, data, {
+  const { isPending, isSuccess, mutate, mutateAsync, ...rest } = useMutation({
+    mutationFn: (data: T extends undefined | null ? void : T) =>{
+      const reqConfig: AxiosRequestConfig = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }),
+        ...reqOptions
+      }
+      if(method !== 'delete'){
+       return mainApi[method](route, data, reqConfig);
+      }
+      return mainApi[method](route,reqConfig);
+    },
     onSuccess: (response) => {
       if (onSuccess) {
         onSuccess(response);
@@ -47,6 +53,6 @@ function useMutate<T>({
       }
     },
   });
-  return { isPending, isSuccess, mutate, mutateAsync };
+  return { isPending, isSuccess, mutate, mutateAsync, ...rest };
 }
 export { useMutate };

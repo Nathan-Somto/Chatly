@@ -1,4 +1,5 @@
 import { QueryKey } from "@tanstack/react-query";
+import { AxiosRequestConfig, AxiosResponse } from "axios";
 export type GetQueryType<T> = {
     enabled: boolean,
     route: string,
@@ -9,12 +10,13 @@ export type GetQueryType<T> = {
 }
 export type MutateType<T> = {
     route: string;
+    method: "post" | 'patch' | 'put' | 'delete';
     onSuccess?: (response: AxiosResponse<any, any>) => void;
     onSettled?: () => void;
     onError?: () => void;
-    defaultMessage: string;
+    defaultMessage?: string;
     displayToast?: boolean;
-    method: "post" | 'patch' | 'put'
+    reqOptions?: AxiosRequestConfig;
 }
 export type GetResponse<T> = {
     data: T;

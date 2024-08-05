@@ -1,53 +1,54 @@
-import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-//import { useNavigate } from "react-router-dom";
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 type Props = {
   open: boolean;
-  setModals: React.Dispatch<React.SetStateAction<{
-    groupChat: boolean;
-    deleteAccount: boolean;
-}>>
-}
-export default  function DeleteModal({
-open,
-setModals
+  onOpenChange: (val: boolean) => void;
+  deleteFn: () => void | Promise<void>;
+  message?: string;
+  title?: string;
+  isPending: boolean;
+};
+export default function DeleteModal({
+  open,
+  onOpenChange,
+  deleteFn,
+  title = `Are you absolutely sure?`,
+  message = `This action cannot be undone. This will permanently delete this item.`,
+  isPending,
 }: Props) {
- // const navigate = useNavigate();
-  async function handleDelete(){
+  async function handleDelete() {
     // send to endpoint
+    await deleteFn();
     // close modal
-    setModals(prevState => ({
-      ...prevState,
-      deleteAccount: false
-    }))
-  
+    onOpenChange(false);
   }
   return (
-    <Dialog open={open} onOpenChange={(open) =>  setModals(prevState => ({
-      ...prevState,
-      deleteAccount: open
-    })) }>
+    <Dialog open={open} onOpenChange={(open) => onOpenChange(open)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your messages from our database.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant={'secondary'}>Cancel</Button>
-          <Button variant={'destructive'} onClick={handleDelete}>Continue</Button>
+          <Button variant={"secondary"} onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            disabled={isPending}
+            variant={"destructive"}
+            onClick={handleDelete}
+          >
+            {isPending ? "Deleting..." : "Continue"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

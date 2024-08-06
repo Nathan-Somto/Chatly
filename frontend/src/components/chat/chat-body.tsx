@@ -4,7 +4,7 @@ import { MessageSquareIcon } from "lucide-react";
 import P from "../ui/typo/P";
 import { useMessages } from "@/hooks/useMessages";
 import { v4 as uuidv4 } from "uuid";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import MediaViewModal from "../modals/media-viewer-modal";
 import useSocketStore from "@/hooks/useSocket";
 import { GetMessagesResponse, MessageEmit } from "@/api-types";
@@ -16,6 +16,7 @@ import Loader from "../ui/loader";
 import { useActiveChat } from "@/hooks/useActiveChat";
 import { useMessageOptions } from "@/hooks/useMessageOptions";
 import DeleteModal from "../modals/delete-modal";
+import { useScrollTo } from "@/hooks/useScrollTo"
 
 function ChatBody() {
   const [openImgModal, setOpenImgModal] = useState(false);
@@ -26,7 +27,9 @@ function ChatBody() {
   const { activeChat } = useActiveChat();
   const { socket } = useSocketStore();
   const { profile } = useProfileStore();
-  const bodyRef = useRef<HTMLElement>(null);
+  const {scrollToRef} = useScrollTo({
+    triggerValues: [messages],
+  })
   function openImageModal(src: string) {
     setOpenImgModal(true);
     setImgSrc(src);
@@ -85,15 +88,6 @@ function ChatBody() {
       };
     }
   }, [socket, messages, activeChat]);
-  // on new messages scroll to the bottom of the page if the user is not there
-  useEffect(() => {
-    if (bodyRef.current) {
-      bodyRef.current.scrollTo({
-        top: bodyRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }, [messages]);
   async function handleDelete() {
     // remove from the store
     console.log("delete modal: ", id);
@@ -117,7 +111,6 @@ function ChatBody() {
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-        ref={bodyRef}
         className="mt-[75px] min-h-screen mb-16 relative"
       >
         {isFetching ? (
@@ -173,6 +166,7 @@ function ChatBody() {
         title="Delete Message"
         message="Are you sure you want to delete this message?"
       />
+      <div ref={scrollToRef}></div>
     </>
   );
 }

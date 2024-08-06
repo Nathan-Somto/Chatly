@@ -1,24 +1,18 @@
+import { ChatBoxType } from "@/components/chats";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+type ActiveGroupType = Omit<
+  ChatBoxType,
+  "email" | "bio" | "message" | "lastSeen"
+>;
+type ActiveDmType = Pick<ChatBoxType, "id" | "lastSeen" | "bio" | "email"> & {
+  avatar: string;
+  username: string;
+};
 // when i click a chat this is responsible for filling the chat header with the chat info
 export type ActiveChat = {
-  groupInfo: {
-    id: string;
-    isGroup: boolean;
-    name: string;
-    avatars: string[];
-    members?: string[];
-    description?: string | null; 
-    inviteCode?: string | null;
-  } | null;
-  dmInfo: {
-    avatar: string;
-    username: string;
-    id: string;
-    lastSeen: Date | undefined;
-    bio?: string | null;
-    email?: string | null;
-  } | null;
+  groupInfo: ActiveGroupType | null;
+  dmInfo: ActiveDmType | null;
 } | null;
 interface ActiveChatState {
   activeChat: ActiveChat;

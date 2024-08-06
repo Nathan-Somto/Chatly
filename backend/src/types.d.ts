@@ -1,10 +1,10 @@
-import {StrictAuthProp} from '@clerk/clerk-sdk-node'
-import { $Enums } from '@prisma/client';
+import { StrictAuthProp } from "@clerk/clerk-sdk-node";
+import { $Enums } from "@prisma/client";
 declare global {
-    namespace Express {
-      interface Request extends StrictAuthProp{}
-    }
+  namespace Express {
+    interface Request extends StrictAuthProp {}
   }
+}
 type MessageEmit = {
   message: {
     Sender: {
@@ -34,10 +34,14 @@ type MessageEmit = {
   chatInfo: {
     id: string;
     isGroup: boolean;
-    name: string;
+    name: string | null;
     avatars: string[];
     lastSeen?: Date;
+    members?: string[];
     description?: string | null;
-    privacy: $Enums.PrivacyType | null;
-  }
-}
+    email?: string | null;
+    bio?: string | null;
+    inviteCode?: string | null;
+    privacy?: PrivacyType | null;
+  };
+};

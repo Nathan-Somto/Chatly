@@ -69,6 +69,12 @@ app.use("/api/v1/messages", messageRouter);
 app.use("api/v1/search", searchRouter);
 app.use(errorHandler);
 io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+  // Set the user's online status to true
+  socket.on("userConnected", async (userId: string) => {
+    await updateOnlineStatus(userId);
+    console.log("User connected:", userId);
+  });
   // for joining a partcular room (direct message or group chat)
   socket.on("joinChat", ({ chatId, userId }) => {
     socket.join(chatId);
@@ -80,10 +86,7 @@ io.on("connection", (socket) => {
     await updateOnlineStatus(message.Sender.id);
     // use this to update both the chat list page and chat page.
     io.to(chatInfo.id).emit("newMessage", {
-      chatInfo: {
-        ...chatInfo,
-        lastSeen: new Date(),
-      },
+      chatInfo,
       message,
     });
   });

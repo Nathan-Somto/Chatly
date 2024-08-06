@@ -1,4 +1,4 @@
-import { PrivacyType } from "./components/chats";
+import { ChatBoxType, PrivacyType } from "./components/chats";
 
 /** Response Types **/
 type PaginatedResponse<K extends string, T> = {
@@ -65,16 +65,7 @@ export type GetGroupMembersResponse= {chatMembers: UserBox[]}
 /** Socket IO types **/
 export type MessageEmit = {
   message: Message["message"];
-  chatInfo: {
-    id: string;
-    isGroup: boolean;
-    name: string;
-    avatars: string[];
-    lastSeen?: Date;
-    description?: string | null;
-    inviteCode?: string | null;
-    privacy: PrivacyType | null;
-  };
+  chatInfo:Omit<ChatBoxType, 'message'>;
 };
 /** Ends Here **/
 

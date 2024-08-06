@@ -3,7 +3,6 @@ import H3 from "@/components/ui/typo/H3";
 import P from "@/components/ui/typo/P";
 import { cn, formatLastSeen } from "@/lib/utils";
 import { SlashIcon, Trash2Icon } from "lucide-react";
-import React from "react";
 type Props = {
   id: string;
   username: string;

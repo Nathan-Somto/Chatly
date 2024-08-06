@@ -1,7 +1,8 @@
+import { ChangeRolePayload, GetGroupMembersResponse } from "@/api-types";
+import { PrivacyType } from "@/components/chats";
 import AvatarGroup from "@/components/common/avatar-group";
 import EditInput from "@/components/common/edit-input";
 import UserGroupBox from "@/components/common/user-group-box";
-import UserBox from "@/components/common/user-group-box";
 import GroupChatModal from "@/components/modals/groupchat-modal";
 import { InviteModal } from "@/components/modals/invite-modal";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,10 @@ import Loader from "@/components/ui/loader";
 import { Switch } from "@/components/ui/switch";
 import H3 from "@/components/ui/typo/H3";
 import P from "@/components/ui/typo/P";
+import { useGetQuery } from "@/hooks/query/useGetQuery";
+import { useMutate } from "@/hooks/query/useMutate";
+import { useProfileStore } from "@/hooks/useProfile";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   EyeOff,
   LogOutIcon,
@@ -25,35 +30,30 @@ import {
   UsersIcon,
   XCircleIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-type PrivacyType = "PUBLIC" | "PRIVATE";
 type Props = {
   avatars: string[];
-  isOwner: boolean;
-  canEdit: boolean;
   name: string;
-  memberCount: number;
   description: string;
   inviteCode: string;
-  privacyType: PrivacyType;
-  users: UserBox[];
+  privacyType?: PrivacyType;
 };
+//@Todo: handle member leave, member remove, group chat delete, group chat update
 export default function GroupChatContents({
   avatars,
-  memberCount,
-  canEdit,
   privacyType,
-  users,
   inviteCode,
-  description = "a group chat for all the fun and parties!",
-  name = "some random ass group chat!",
-  isOwner,
+  description = "No Description Provided!",
+  name = "No Groupchat name",
 }: Props) {
+  const { profile } = useProfileStore();
   const { chatId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [localUsers, setLocalUsers] = useState(users);
+  const [isOwner, setIsOwner] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
+  const [localUsers, setLocalUsers] = useState<null | UserBox[]>(null);
   const [values, setValue] = useState({
     name,
     description,
@@ -64,10 +64,70 @@ export default function GroupChatContents({
     link: `invite-link/${chatId}/${inviteCode}`,
   });
   const [groupChatModal, setGroupChatModal] = useState(false);
+  const prevUserRole = useRef<{ index: number; role: Role }>({
+    index: -1,
+    role: "MEMBER",
+  });
+  const queryClient = useQueryClient();
   const displaySaveButton =
     name !== values.name ||
     description !== values.description ||
     privacyType !== values.privacyType;
+  // fetch the group chat members
+  const { data: membersResponse, isPending: isFetchingMembers } =
+    useGetQuery<GetGroupMembersResponse>({
+      enabled: true,
+      queryKey: ["members", chatId],
+      route: `/chats/${chatId}/members`,
+      displayToast: false,
+    });
+  const { mutate: changeRole, isPending: isChangingRole } =
+    useMutate<ChangeRolePayload>({
+      route: `/chats/${chatId}/change-role`,
+      method: "patch",
+      displayToast: true,
+      onSuccess() {
+        // reset the ref
+        resetPrevUserRef();
+        queryClient.invalidateQueries({
+          queryKey: ["members", chatId],
+          exact: true,
+        });
+      },
+      onError() {
+        // find the user and reset to prev role.
+        if (!localUsers) return;
+        const { index, role } = prevUserRole.current;
+        const localUsersCopy = localUsers?.slice();
+        localUsersCopy[index].role = role;
+        setLocalUsers(localUsersCopy);
+      },
+    });
+  useEffect(() => {
+    const data = membersResponse?.data;
+    if (data) {
+      // find the logged in user and determine if they can edit or they are an Owner
+      const user = data.chatMembers.find((user) => user.id === profile?.id);
+      if (user) {
+        if (user.role === "OWNER") {
+          setIsOwner(true);
+          setCanEdit(true);
+        } else if (user.role === "ADMIN") {
+          setCanEdit(true);
+        }
+      } else {
+        setCanEdit(false);
+        setIsOwner(false);
+      }
+      setLocalUsers(data.chatMembers);
+    }
+  }, [membersResponse]);
+  function resetPrevUserRef() {
+    prevUserRole.current = {
+      index: -1,
+      role: "MEMBER",
+    };
+  }
   function handleChange(key: string, value: string) {
     setValue((prevState) => ({
       ...prevState,
@@ -87,14 +147,24 @@ export default function GroupChatContents({
   function toggleLoading(value: boolean) {
     setIsLoading(value);
   }
-  function makeAdmin(index: number, role: Role) {
-    const localUsersCopy = localUsers.slice();
+  function toggleRole(targetUserId: string, index: number, role: Role) {
+    if (!profile?.id) return;
+    const localUsersCopy = localUsers?.slice() ?? [];
+    prevUserRole.current = {
+      index,
+      role,
+    };
     if (role === "MEMBER") {
       localUsersCopy[index].role = "ADMIN";
     } else {
       localUsersCopy[index].role = "MEMBER";
     }
     setLocalUsers(localUsersCopy);
+    changeRole({
+      adminId: profile.id,
+      role,
+      targetUserId,
+    });
   }
   async function handleSubmit(data: typeof values) {
     console.log(data);
@@ -127,9 +197,16 @@ export default function GroupChatContents({
           <div className="mx-auto w-fit mb-3">
             <AvatarGroup avatars={avatars} size={120} />
           </div>
-          <P className="opacity-80 text-xs font-medium mt-1.5 text-[#383A47] dark:text-gray-300">
-            {memberCount} Member{memberCount > 1 ? "s" : ""}
-          </P>
+          {isFetchingMembers ? (
+            <div className="bg-[#383A47] dark:gray-300 h-5 w-8 rounded-sm mt-1.5 animate-ping"></div>
+          ) : (
+            <P className="opacity-80 text-xs font-medium mt-1.5 text-[#383A47] dark:text-gray-300">
+              {`${localUsers?.length ?? 0}${' '}Member${
+                (localUsers?.length ?? 0) > 1 ? "s" : ""
+              } `}
+            </P>
+          )}
+
           <div className="">
             <EditInput
               label="name"
@@ -150,7 +227,7 @@ export default function GroupChatContents({
           </div>
         </header>
         <div className="space-y-4">
-          {canEdit && (
+          {canEdit && values.privacyType && (
             <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-100 font-medium">
               <P className="flex items-center gap-5">
                 <span>
@@ -189,44 +266,65 @@ export default function GroupChatContents({
           <div>
             <H3 className="text-lg mt-4 mb-2">Members</H3>
             {/* Members list comes here! */}
-            {localUsers.map((user, index) => (
-              <div className="flex items-center gap-x-2" key={user.id}>
-                <UserGroupBox
-                  type="user"
-                  {...user}
-                  showRole
-                  toggleLoading={toggleLoading}
-                />
-                {canEdit && user.role !== "OWNER" && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant={"ghost"}
-                        className=" hidden lg:block text-brand-p2 hover:bg-transparent !p-0"
-                        size="icon"
-                      >
-                        <MoreHorizontal size={25} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="py-4">
-                      <DropdownMenuItem
-                        className="gap-x-5"
-                        onClick={() => makeAdmin(index, user.role ?? "MEMBER")}
-                      >
-                        <div className="flex items-center">
-                          <ShieldCheckIcon size={20} className="mr-2" />
-                          {user.role !== "ADMIN" ? "Make " : "Remove as "} Admin
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <XCircleIcon size={20} className="mr-2" />
-                        Remove
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-            ))}
+            {localUsers !== null ? (
+              localUsers.length > 0 ? (
+                localUsers.map((user, index) => (
+                  <div className="flex  items-center gap-x-2" key={user.id}>
+                    <UserGroupBox
+                      type="user"
+                      {...user}
+                      showRole
+                      toggleLoading={toggleLoading}
+                    />
+                    {canEdit && user.role !== "OWNER" && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant={"ghost"}
+                            className="text-brand-p2 hover:bg-transparent !p-0"
+                            size="icon"
+                            disabled={isChangingRole}
+                          >
+                            <MoreHorizontal size={25} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="py-4">
+                          <DropdownMenuItem
+                            className="gap-x-5"
+                            onClick={() =>
+                              toggleRole(user.id, index, user.role ?? "MEMBER")
+                            }
+                          >
+                            <div className="flex items-center">
+                              <ShieldCheckIcon size={20} className="mr-2" />
+                              {user.role !== "ADMIN"
+                                ? "Make "
+                                : "Remove as "}{" "}
+                              Admin
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <XCircleIcon size={20} className="mr-2" />
+                            Remove
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div>
+                  <P>No members yet! </P>
+                </div>
+              )
+            ) : (
+              isFetchingMembers && (
+                <div>
+                  {" "}
+                  <Loader withBackground={false} size={"sm"} />{" "}
+                </div>
+              )
+            )}
           </div>
           <Button
             onClick={handleLeave}

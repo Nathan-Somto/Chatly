@@ -1,3 +1,5 @@
+import { PrivacyType } from "./components/chats";
+
 /** Response Types **/
 type PaginatedResponse<K extends string, T> = {
   [index in K]: T[];
@@ -35,7 +37,7 @@ export type CreateDmChatResponse = {
     id: string;
     name: string | null;
     description: string | null;
-    privacy: "PUBLIC" | "PRIVATE" | null;
+    privacy: PrivacyType | null;
   };
 };
 export type GroupChatResponse = {
@@ -45,7 +47,7 @@ export type GroupChatResponse = {
     id: string;
     name?: string | null;
     description?: string | null;
-    privacy: "PUBLIC" | "PRIVATE" | null;
+    privacy: PrivacyType | null;
   };
 };
 export type GetMessagesResponse = PaginatedResponse<
@@ -57,6 +59,7 @@ export type SearchDataResponse = {
   groupChats?: GroupBox & {isGroup: boolean}[]
 }
 export type GetUsersResponse = Pick<SearchDataResponse, 'users'>;
+export type GetGroupMembersResponse= {chatMembers: UserBox[]}
 /** Ends Here **/
 
 /** Socket IO types **/
@@ -70,6 +73,7 @@ export type MessageEmit = {
     lastSeen?: Date;
     description?: string | null;
     inviteCode?: string | null;
+    privacy: PrivacyType | null;
   };
 };
 /** Ends Here **/
@@ -90,4 +94,9 @@ export type EditMessagePayload = Pick<
 export type CreateDmPayload = {
   members: { userId: string }[];
 };
+export type ChangeRolePayload = {
+  adminId: string,
+  targetUserId: string,
+  role: Role
+}
 /** Ends Here **/

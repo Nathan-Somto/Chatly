@@ -1,27 +1,28 @@
 import { SheetContent, Sheet } from "@/components/ui/sheet";
 import { useActiveChat } from "@/hooks/useActiveChat";
 import GroupChatContents from "./groupchat-contents";
-import { sampleUserBoxData } from "@/components/common/user-group-box";
 import { v4 as uuidv4 } from "uuid";
 import DmContents from "./dm-contents";
 import P from "@/components/ui/typo/P";
+import { cn } from "@/lib/utils";
 function ProfileDrawer({ isOpen, openDrawer }: DrawerProps) {
   const { activeChat } = useActiveChat();
-  // perform some data fetching later!
   return (
     <Sheet open={isOpen} onOpenChange={(open) => openDrawer(open)}>
-      <SheetContent side={"right"} className="overflow-y-auto">
+      <SheetContent
+        side={"right"}
+        className={cn(
+          "overflow-y-auto",
+          activeChat?.groupInfo && "!w-[500px] !max-w-none"
+        )}
+      >
         {activeChat?.groupInfo ? (
           <GroupChatContents
-            name={activeChat.groupInfo.name}
+            name={activeChat.groupInfo?.name ?? "No name"}
             description={activeChat.groupInfo?.description ?? "No description"}
             avatars={activeChat.groupInfo.avatars}
-            memberCount={sampleUserBoxData.length}
-            privacyType="PUBLIC"
-            canEdit
+            privacyType={activeChat.groupInfo?.privacy ?? void 0}
             inviteCode={uuidv4()}
-            isOwner={false}
-            users={sampleUserBoxData}
           />
         ) : activeChat?.dmInfo ? (
           <DmContents

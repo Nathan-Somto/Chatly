@@ -37,11 +37,13 @@ function ChatsLayout() {
       }
   }, [response]);
   useEffect(() => {
-    connect(import.meta.env.VITE_IO_URL);
+    if(profile && profile.id) {
+      connect(import.meta.env.VITE_IO_URL, profile.id);
+    }
     return () => {
       disconnect();
     };
-  }, []);
+  }, [profile]);
   return (
     <div>
       <ConnectionStatus />

@@ -4,17 +4,18 @@ import io, {Socket} from 'socket.io-client';
 type SocketState = {
   socket: Socket | null;
   isConnected: boolean;
-  connect: (url: string) => void;
+  connect: (url: string, userId: string) => void;
   disconnect: () => void;
 };
 
 const useSocketStore = create<SocketState>((set) => ({
   socket: null,
   isConnected: false,
-  connect: (url: string) => {
+  connect: (url: string, userId: string) => {
     const socket = io(url);
 
     socket.on('connect', () => {
+      socket.emit('userConnected', userId);
       set({ isConnected: true });
     });
 

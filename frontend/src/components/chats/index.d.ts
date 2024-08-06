@@ -1,3 +1,4 @@
+type PrivacyType = "PUBLIC" | "PRIVATE";
 type ChatBoxType = 
     {
         id: string;
@@ -8,6 +9,7 @@ type ChatBoxType =
             body: string | null;
             type: MessageType;
             readByIds: string[];
+            senderId: string | null;
         };
         avatars: string[];
         lastSeen?: Date;
@@ -16,5 +18,6 @@ type ChatBoxType =
         email?:string | null;
         bio?:string | null;
         inviteCode?: string | null;
+        privacy?: PrivacyType;
     }
-export {type ChatBoxType}
+export{type ChatBoxType, PrivacyType}

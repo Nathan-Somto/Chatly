@@ -46,9 +46,17 @@ function ChatList() {
         id: data.chatInfo.id,
         isGroup: data.chatInfo.isGroup,
         name: data.chatInfo.name,
-        message: data.message,
+        // remove the uneccessary data from the message
+        message: {
+          body: data.message.body,
+          createdAt: data.message.createdAt,
+          readByIds: data.message.readByIds,
+          type: data.message.type,
+          senderId: data.message.senderId,
+        },
         avatars: data.chatInfo.avatars,
         lastSeen: data.chatInfo.lastSeen,
+        privacy: data.chatInfo?.privacy ?? void 0,
       });
       // check if it is the active chat and it is a dm if so update the last seen
       if(activeChat?.dmInfo?.id === data.chatInfo.id && !data.chatInfo.isGroup ){

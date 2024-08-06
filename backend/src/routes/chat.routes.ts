@@ -10,7 +10,7 @@ import {
   createGroupChat,
   joinPublicGroupChat,
   deleteGroupChat,
-  makeAdmin,
+   changeRole,
   markAsRead
 } from "../controllers/chats.controllers";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
@@ -640,10 +640,10 @@ router.patch("/:chatId/add-members", addMembers);
 router.patch("/:chatId/leave", leaveChat);
 /**
  * @swagger
- * /api/v1/chats/{chatId}/make-admin:
+ * /api/v1/chats/{chatId}/change-role:
  *   patch:
- *     summary: Make a member an admin
- *     description: Makes a member an admin.
+ *     summary: Makes a user an admin or member.
+ *     description: Makes a user an admin or member.
  *     tags: [Chat]
  *     parameters:
  *       - in: path
@@ -663,6 +663,9 @@ router.patch("/:chatId/leave", leaveChat);
  *                 type: string
  *               targetUserId:
  *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [MEMBER, ADMIN]
  *     responses:
  *       200:
  *         description: Successfully made the member an admin.
@@ -703,7 +706,7 @@ router.patch("/:chatId/leave", leaveChat);
  *       500:
  *         description: Internal server error.
  */
-router.patch("/:chatId/make-admin", makeAdmin);
+router.patch("/:chatId/change-role", changeRole);
 /**
  * @swagger
  * /api/v1/chats/{chatId}/group-chat:

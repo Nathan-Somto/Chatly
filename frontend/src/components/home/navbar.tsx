@@ -5,7 +5,10 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import clsx from "clsx";
 import { linkData } from "@/constants";
+import { useAuth } from "@clerk/clerk-react";
+import ProfileButton from "../common/profile-button";
 const navbar = () => {
+  const { isSignedIn } = useAuth();
   const [openMenu, setOpenMenu] = useState(false);
   const navigate = useNavigate();
   return (
@@ -34,16 +37,27 @@ const navbar = () => {
           ))}
         </ul>
         <div className="flex flex-col md:flex-row items-center md:gap-3 gap-5">
-          <Button
-            onClick={() => navigate('/sign-in')}
-            variant="ghost"
-            className="max-md:!p-0 max-md:!text-2xl max-md:!h-auto max-md:hover:!bg-transparent max-md:hover:!text-white max-md:hover:opacity-50"
-          >
-            Login
-          </Button>
-          <Button onClick={() => navigate("/sign-up")} className="text-white max-md:!p-0 max-md:!text-2xl max-md:!h-auto max-md:hover:!bg-transparent max-md:hover:!text-white max-md:hover:opacity-50">
-            Get Started
-          </Button>
+          {isSignedIn ? (
+            <>
+              <ProfileButton/>  
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={() => navigate("/sign-in")}
+                variant="ghost"
+                className="max-md:!p-0 max-md:!text-2xl max-md:!h-auto max-md:hover:!bg-transparent max-md:hover:!text-white max-md:hover:opacity-50"
+              >
+                Login
+              </Button>
+              <Button
+                onClick={() => navigate("/sign-up")}
+                className="text-white max-md:!p-0 max-md:!text-2xl max-md:!h-auto max-md:hover:!bg-transparent max-md:hover:!text-white max-md:hover:opacity-50"
+              >
+                Get Started
+              </Button>
+            </>
+          )}
         </div>
       </div>
       <button

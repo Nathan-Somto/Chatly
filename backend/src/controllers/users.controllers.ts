@@ -127,6 +127,7 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
         name: true,
         description: true,
         inviteCode: true,
+        privacy: true,
         members: {
           take: 3,
           select: {
@@ -152,6 +153,7 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
             createdAt: true,
             readByIds: true,
             type: true,
+            senderId: true,
           },
         },
       }
@@ -177,8 +179,8 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
             createdAt: new Date(),
             body: null,
             type:'TEXT',
-            readByIds:[]
-      
+            readByIds:[],
+            senderId: null
         },
         avatars: members.map((member) => member.user.avatar),
         members: members.map(member => member.user.username),
@@ -187,6 +189,7 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
         bio,
         inviteCode: chat?.inviteCode ?? null,
         description: chat.description,
+        privacy: chat.privacy
       };
      
     });

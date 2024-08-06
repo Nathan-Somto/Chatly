@@ -247,6 +247,10 @@ router.get("/profile", getProfile);
  *                         items:
  *                           type: string
  *                           example: "https://example.com/avatar.jpg"
+ *                       privacy:
+ *                         type: string
+ *                         enum: ["PUBLIC", "PRIVATE"]
+ *                         example: "PUBLIC"
  *                       members:
  *                         type: array
  *                         items:

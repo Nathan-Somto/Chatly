@@ -18,6 +18,6 @@ type ChatBoxType =
         email?:string | null;
         bio?:string | null;
         inviteCode?: string | null;
-        privacy?: PrivacyType;
+        privacy?: PrivacyType | null;
     }
 export{type ChatBoxType, PrivacyType}

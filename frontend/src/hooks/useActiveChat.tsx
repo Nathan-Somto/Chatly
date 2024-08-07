@@ -13,14 +13,17 @@ type ActiveDmType = Pick<ChatBoxType, "id" | "lastSeen" | "bio" | "email"> & {
 export type ActiveChat = {
   groupInfo: ActiveGroupType | null;
   dmInfo: ActiveDmType | null;
-} | null;
+};
 interface ActiveChatState {
   activeChat: ActiveChat;
   setActiveChat: (data: ActiveChat) => void;
   updateLastSeen: (lastSeen: Date) => void;
   reset: () => void;
 }
-const initialChat: ActiveChat = null;
+const initialChat: ActiveChat = {
+  groupInfo: null,
+  dmInfo: null,
+};
 type Store = (
   set: (
     partial:

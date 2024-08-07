@@ -702,6 +702,7 @@ const leaveChat = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const clerkId = req.auth.userId;
     const { chatId } = req.params;
+    const { username } = req.body;
     const user = await prisma.user.findUnique({
       where: {
         clerkId,
@@ -737,17 +738,31 @@ const leaveChat = async (req: Request, res: Response, next: NextFunction) => {
         userId,
       },
     });
+    if (member === null) {
+      return res.status(400).json({
+        message: "user is not a member of this group chat",
+        success: false,
+      });
+    }
     await prisma.member.delete({
       where: {
         id: member?.id,
       },
     });
-    res.status(202).json({
+    const leftMessage = await prisma.message.create({
+      data: {
+        chatId: groupChat.id,
+        body: `${username} left the group chat`,
+        senderId: userId,
+        type: "SYSTEM",
+      },
+    });
+    // once done emit to everyone in the chat!
+    return res.status(201).json({
       message: "succesfully left group chat!",
       success: true,
+      leftMessage,
     });
-    return;
-    // once done emit to everyone in the chat!
   } catch (err) {
     next(err);
   }

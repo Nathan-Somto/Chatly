@@ -616,10 +616,10 @@ router.patch("/:chatId/add-members", addMembers);
  *           schema:
  *             type: object
  *             properties:
- *               userId:
+ *               username:
  *                 type: string
  *     responses:
- *       202:
+ *       201:
  *         description: Successfully left group chat.
  *         content:
  *           application/json:
@@ -632,6 +632,19 @@ router.patch("/:chatId/add-members", addMembers);
  *                 success:
  *                   type: boolean
  *                   example: true
+ *                 joinedMessage:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     body:
+ *                       type: string
+ *                     chatId:
+ *                       type: string
+ *                     senderId:
+ *                       type: string
+ *                     type:
+ *                       type: string
  *       400:
  *         description: User has left or this is not a group chat.
  *       500:

@@ -69,17 +69,22 @@ app.use("/api/v1/messages", messageRouter);
 app.use("api/v1/search", searchRouter);
 app.use(errorHandler);
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-  // Set the user's online status to true
+   console.log("User connected:", socket.id);
+  // updates the user's online status.
   socket.on("userConnected", async (userId: string) => {
     await updateOnlineStatus(userId);
-    console.log("User connected:", userId);
+    console.log("Users online status updated:", userId);
   });
   // for joining a partcular room (direct message or group chat)
   socket.on("joinChat", ({ chatId, userId }) => {
     socket.join(chatId);
-    console.log(`user ${userId} joined chat ${chatId}`);
+    console.log(`user ${userId} joined the chat ${chatId}`);
   });
+  // for leaving a particular room (direct message or group chat)
+  socket.on('leaveChat', ({chatId, userId})=>{
+    socket.leave(chatId);
+    console.log(`user ${userId} left the chat ${chatId}`);
+  })
   // for sending a message
   socket.on("sendMessage", async ({ chatInfo, message }: MessageEmit) => {
     // update the sender's online status.
@@ -109,7 +114,6 @@ io.on("connection", (socket) => {
 });
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend", "build")));
-
   app.get("*", (_, res) => {
     res.sendFile(path.join(__dirname, "frontend", "build", "index.html"));
   });

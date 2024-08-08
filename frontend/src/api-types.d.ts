@@ -90,4 +90,15 @@ export type ChangeRolePayload = {
   targetUserId: string,
   role: Role
 }
+export type RemoveMemberPayload = {
+  adminUsername: string,
+  userId: string,
+  targetUserId: string,
+  targetUsername: string
+}
+export type EditGroupChatPayload = {
+  name: string,
+  description: string,
+  privacy: PrivacyType
+}
 /** Ends Here **/

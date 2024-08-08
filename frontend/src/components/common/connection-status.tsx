@@ -1,18 +1,19 @@
 import useSocketStore from "@/hooks/useSocket";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function ConnectionStatus() {
   const [show, setShow] = useState(true);
   const { isConnected } = useSocketStore();
   // set a timer to remove it after a while
   useEffect(() => {
+    setShow(true);
     const timer = setTimeout(() => {
       setShow(false);
     }, 7000);
     return () => {
       clearTimeout(timer);
     };
-  }, []);
+  }, [isConnected]);
   if (!show) return null;
   return (
     <header className="bg-gray-50 dark:bg-background border-b top-0 fixed h-7 px-2 w-full z-[9999999999] border-gray-200 dark:border-gray-700">

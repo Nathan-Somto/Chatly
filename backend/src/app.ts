@@ -88,6 +88,8 @@ io.on("connection", (socket) => {
   // for sending a message
   socket.on("sendMessage", async ({ chatInfo, message }: MessageEmit) => {
     // update the sender's online status.
+    console.log("info: ", JSON.stringify(chatInfo, null,2));
+    console.log("message: ", JSON.stringify(message, null, 2));
     await updateOnlineStatus(message.Sender.id);
     // use this to update both the chat list page and chat page.
     io.to(chatInfo.id).emit("newMessage", {
@@ -95,13 +97,17 @@ io.on("connection", (socket) => {
       message,
     });
   });
-  /*  // for updating a message
-  socket.on('updateMessage', async ({senderId, chatId, chatInfo, message}) => {
+   // for updating a message
+  socket.on('updateMessage', async ({chatInfo, message}: MessageEmit) => {
      // update the sender's online status.
-    await updateOnlineStatus(senderId);
+    await updateOnlineStatus(message.Sender.id);
      // send the usual info (if it is in the ui of the frontend it is updated)
-
+    io.to(chatInfo.id).emit('messageUpdated', {
+      chatInfo,
+      message
   })
+  
+  /*
   // for deleting a message
   socket.on('deleteMessage', () => {
     // update the sender's online status.
@@ -111,7 +117,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
-});
+}) });
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend", "build")));
   app.get("*", (_, res) => {

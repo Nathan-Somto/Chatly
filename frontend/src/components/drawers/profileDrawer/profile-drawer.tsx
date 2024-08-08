@@ -1,19 +1,21 @@
 import { SheetContent, Sheet } from "@/components/ui/sheet";
 import { useActiveChat } from "@/hooks/useActiveChat";
 import GroupChatContents from "./groupchat-contents";
-import { v4 as uuidv4 } from "uuid";
 import DmContents from "./dm-contents";
 import P from "@/components/ui/typo/P";
 import { cn } from "@/lib/utils";
 function ProfileDrawer({ isOpen, openDrawer }: DrawerProps) {
   const { activeChat } = useActiveChat();
+  function closeDrawer() {
+    openDrawer(false);
+  }
   return (
     <Sheet open={isOpen} onOpenChange={(open) => openDrawer(open)}>
       <SheetContent
         side={"right"}
         className={cn(
-          "overflow-y-auto",
-          activeChat?.groupInfo && "!w-[500px] !max-w-none"
+          "overflow-y-auto w-full",
+          activeChat?.groupInfo && "sm:!w-[500px] !max-w-[500px]"
         )}
       >
         {activeChat?.groupInfo ? (
@@ -22,7 +24,8 @@ function ProfileDrawer({ isOpen, openDrawer }: DrawerProps) {
             description={activeChat.groupInfo?.description ?? "No description"}
             avatars={activeChat.groupInfo.avatars}
             privacyType={activeChat.groupInfo?.privacy ?? void 0}
-            inviteCode={uuidv4()}
+            inviteCode={activeChat.groupInfo?.inviteCode ?? "No invite code"}
+            closeDrawer={closeDrawer}
           />
         ) : activeChat?.dmInfo ? (
           <DmContents
@@ -32,6 +35,7 @@ function ProfileDrawer({ isOpen, openDrawer }: DrawerProps) {
             bio={activeChat.dmInfo?.bio ?? "No bio"}
             email={activeChat.dmInfo?.email ?? "No email"}
             id={activeChat.dmInfo.id}
+            closeDrawer={closeDrawer}
           />
         ) : (
           <P>Nothing to show here!</P>

@@ -10,6 +10,7 @@ type Props = {
   lastSeen: Date;
   avatar: string;
   email: string;
+  closeDrawer: () => void;
 };
 export default function DmContents({
   avatar,

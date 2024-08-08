@@ -1,3 +1,4 @@
+import { GitPullRequestIcon, GroupIcon, LogOutIcon, TrashIcon } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 export const TOKEN_REFRESH_TIME = 24 * 60 * 60 * 1000 // 1 day
 export const clerkConfig = (theme: string) => {
@@ -25,8 +26,10 @@ export const customReactSelectStyles = {
   }),
   multiValueLabel: (provided: any) => ({
     ...provided,
-    color: 'hsl(var(--foreground))',
+    color: 'hsl(var(--secondary-foreground))',
+
   }),
+
 };
 
 export const linkData = [
@@ -51,3 +54,22 @@ export const linkData = [
     id: uuidv4(),
   },
 ];
+
+export const settingsItemData = [
+  {
+    text: "New Group chat",
+    icon: GroupIcon,
+  },
+  {
+    text: "Request Feature",
+    icon: GitPullRequestIcon,
+  },
+  {
+    text: "Logout",
+    icon: LogOutIcon,
+  },
+  {
+    text: "Delete Account",
+    icon: TrashIcon,
+  },
+] as const;

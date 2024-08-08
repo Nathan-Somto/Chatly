@@ -1,12 +1,9 @@
 import { cn } from "@/lib/utils";
-import React from 'react'
 import {LucideIcon} from "lucide-react"
 import P from "@/components/ui/typo/P";
 type SettingsItemProps = {
     text: "New Group chat" | "Request Feature" | "Logout" | "Delete Account";
-    Icon:({ size, ...props }: {
-      size?: number | undefined;
-  } & React.SVGProps<SVGSVGElement>) => JSX.Element | LucideIcon;
+    Icon: LucideIcon;
     size?: number;
     handleClick?: (item: "New Group chat" | "Request Feature" | "Logout" | "Delete Account") => Promise<void>;
     danger?: boolean;

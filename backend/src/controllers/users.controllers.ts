@@ -190,10 +190,8 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
         inviteCode: chat?.inviteCode ?? null,
         description: chat.description,
         privacy: chat.privacy
-      };
-     
+      };    
     });
-    console.log(JSON.stringify(formattedChats))
     return res.status(200).json({
       success: true,
       chats: formattedChats,

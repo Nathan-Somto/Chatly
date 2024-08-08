@@ -9,6 +9,8 @@ function SignInPage() {
       afterSignInUrl={`/chats-redirect`}
       signUpUrl="/sign-up"
       appearance={clerkConfig(theme)}
+      routing="path"
+      path="/sign-in"
     />
   );
 }

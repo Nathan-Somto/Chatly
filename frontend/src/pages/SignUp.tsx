@@ -9,6 +9,8 @@ function SignUpPage() {
       afterSignUpUrl={"/onboarding"}
       signInUrl="/sign-in"
       appearance={clerkConfig(theme)}
+      routing="path"
+      path="/sign-up"
     />
   );
 }

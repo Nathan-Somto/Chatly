@@ -1,5 +1,4 @@
 import { Outlet } from "react-router-dom";
-import DesktopOnly from "../common/DesktopOnly";
 import { ClerkLoading, RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
 import Loader from "../ui/loader";
 
@@ -13,7 +12,6 @@ const ProtectedRoute = () => {
     </ClerkLoading>
       <SignedIn>
         <Outlet />
-        <DesktopOnly />
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn redirectUrl={'/sign-in'} />

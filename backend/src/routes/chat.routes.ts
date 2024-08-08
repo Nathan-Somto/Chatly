@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   addMembers, 
-  editChat,
+  editGroupChat,
   getGroupChatMembers,
   getChatMessages,
   joinViaLink,
@@ -11,7 +11,8 @@ import {
   joinPublicGroupChat,
   deleteGroupChat,
    changeRole,
-  markAsRead
+  markAsRead,
+  removeMember
 } from "../controllers/chats.controllers";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
@@ -515,8 +516,6 @@ router.patch("/:chatId/mark-as-read", markAsRead)
  *           schema:
  *             type: object
  *             properties:
- *               userId:
- *                 type: string
  *               name:
  *                 type: string
  *               description:
@@ -551,7 +550,7 @@ router.patch("/:chatId/mark-as-read", markAsRead)
  *         description: Internal server error.
  */
 
-router.patch("/:chatId", editChat);
+router.patch("/:chatId", editGroupChat);
 /**
  * @swagger
  * /api/v1/chats/{chatId}/add-members:
@@ -595,6 +594,103 @@ router.patch("/:chatId", editChat);
  *         description: Internal server error.
  */
 router.patch("/:chatId/add-members", addMembers);
+/**
+ * @swagger
+ * /api/v1/chats/{chatId}/remove-member:
+ *   patch:
+ *     summary: Removes a member from a group chat
+ *     description: Endpoint to remove a member from a group chat. Requires the user to be an admin or owner of the chat.
+ *     tags: [Chat]
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the chat from which the member is to be removed.
+ *       - in: body
+ *         name: body
+ *         description: The request body to remove a member from a group chat.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             adminUsername:
+ *               type: string
+ *               description: Username of the admin performing the removal.
+ *             userId:
+ *               type: string
+ *               description: ID of the admin performing the removal.
+ *             targetUserId:
+ *               type: string
+ *               description: ID of the member to be removed.
+ *             targetUsername:
+ *               type: string
+ *               description: Username of the member to be removed.
+ *     responses:
+ *       200:
+ *         description: Successfully removed member from the group chat.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "successfully removed member"
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 removedMessage:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: ID of the system message created.
+ *                     chatId:
+ *                       type: string
+ *                       description: ID of the chat.
+ *                     body:
+ *                       type: string
+ *                       description: Body of the system message.
+ *                     senderId:
+ *                       type: string
+ *                       description: ID of the sender (admin).
+ *                     type:
+ *                       type: string
+ *                       description: Type of the message (SYSTEM).
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: Timestamp of the message creation.
+ *       400:
+ *         description: Bad request. Possible reasons - user is not an admin or owner, member not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "user is not an admin or owner"
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ */
+router.patch("/:chatId/remove-member", removeMember);
 /**
  * @swagger
  * /api/v1/chats/{chatId}/leave:
@@ -733,16 +829,7 @@ router.patch("/:chatId/change-role", changeRole);
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the chat.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: string
+ *           description: ID of the chat.
  *     responses:
  *       202:
  *         description: Successfully deleted group chat.
@@ -759,6 +846,17 @@ router.patch("/:chatId/change-role", changeRole);
  *                   example: true
  *       400:
  *         description: User is not an admin or owner, or group chat does not exist.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "user is not an admin or owner"
+ *                 success:
+ *                   type: boolean
+ *                   example: false
  *       500:
  *         description: Internal server error.
  */

@@ -30,7 +30,7 @@ const navbar = () => {
           {linkData.map((item) => (
             <li
               key={item.id}
-              className="border-b-2 border-transparent hover:opacity-50 md:hover:opacity-100 md:hover:border-b-brand-p1 font-medium"
+              className="border-b-2 capitalize border-transparent hover:opacity-50 md:hover:opacity-100 md:hover:border-b-brand-p1 font-medium"
             >
               <Link to={item.link}>{item.text}</Link>
             </li>

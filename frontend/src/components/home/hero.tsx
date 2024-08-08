@@ -42,7 +42,7 @@ function Hero() {
               <img
                 src={avatar3}
                 alt="avatar 3"
-                className="z-[3] relative -ml-6 h-[3.7rem] w-[3.7rem] object-cover"
+                className="z-[3] relative -ml-6 h-[3.5rem] w-[3.5rem] object-cover"
               />
             </figure>
             <div className="space-y-1">

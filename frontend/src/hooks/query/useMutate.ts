@@ -36,7 +36,7 @@ function useMutate<T>({
     },
     onError: (err) => {
       if(err instanceof AxiosError){
-        if(err.response?.data?.unauthenticated || err.status === 401){
+        if(err.response?.data?.unauthenticated || err?.response?.status === 401){
           refetchToken();
         }
       }

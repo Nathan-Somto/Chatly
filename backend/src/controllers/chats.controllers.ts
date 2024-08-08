@@ -228,6 +228,7 @@ const createGroupChat = async (
           name: true,
           description: true,
           privacy: true,
+          inviteCode: true,
           members: {
             take: 3,
             select: {
@@ -254,9 +255,10 @@ const createGroupChat = async (
         // remove members property replace with avatars prop which is string[]
         avatars: groupChat.members.map((member) => member.user.avatar),
         members: groupChat.members
-          .slice(3)
+          .slice(0,3)
           .map((member) => member.user.username),
       };
+      console.log(JSON.stringify(formattedGroupChat, null, 2));
       res.status(201).json({
         message: "successfully created group chat!",
         groupChat: formattedGroupChat,
@@ -595,16 +597,26 @@ const joinPublicGroupChat = async (
  * @requires checkIfAdmin
  * @route /api/v1/chats/:chatId
  */
-const editChat = async (req: Request, res: Response, next: NextFunction) => {
+const editGroupChat = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const clerkId = req.auth.userId;
     const { chatId } = req.params;
-    const { userId, name, description, privacy } = req.body;
-    if (typeof userId !== "string" && typeof chatId !== "string") {
-      return res.status(400).json({
-        message: "ensure that userId and chatId are type strings",
+    const { name, description, privacy } = req.body;
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (user === null) {
+      return res.status(404).json({
+        message: "user not found!",
         success: false,
       });
     }
+    const userId = user.id;
     const isAdminOrOwner = await checkIfAdminOrOwner(userId, chatId);
     if (isAdminOrOwner) {
       const groupChat = await prisma.chat.findUnique({
@@ -838,7 +850,7 @@ const changeRole = async (req: Request, res: Response, next: NextFunction) => {
  * @description deletes a particular group chat
  * @param res
  * @route /api/v1/chats/:chatId/group-chat
- * @requires checkIfAdmin
+ * @requires checkIfAdminOrOwner
  */
 const deleteGroupChat = async (
   req: Request,
@@ -846,7 +858,23 @@ const deleteGroupChat = async (
   next: NextFunction
 ) => {
   try {
-    const { userId } = req.body;
+    const clerkId = req.auth.userId;
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (user === null) {
+      res.status(404).json({
+        message: "user not found!",
+        success: false,
+      });
+      return;
+    }
+    const userId = user.id;
     const { chatId } = req.params;
     const isAdminOrOwner = await checkIfAdminOrOwner(userId, chatId);
     if (!isAdminOrOwner) {
@@ -886,12 +914,69 @@ const deleteGroupChat = async (
     next(err);
   }
 };
-
+/**
+ * @method PATCH
+ * @param req
+ * @param res
+ * @description removes a member from a group chat
+ * @route /api/v1/chats/:chatId/remove-member
+ * @requires checkIfAdminOrOwner
+ */
+const removeMember = async (
+  req: Request,
+  res: Response,
+  next: NextFunction) => {
+    try {
+      const { adminUsername, userId, targetUserId, targetUsername } = req.body;
+      const { chatId } = req.params;
+      const isAdminOrOwner = await checkIfAdminOrOwner(userId, chatId);
+      if (!isAdminOrOwner) {
+        res.status(400).json({
+          message: "user is not an admin or owner",
+          success: false,
+        });
+        return;
+      }
+      const member = await prisma.member.findFirst({
+        where: {
+          AND: [{ chatId }, { userId: targetUserId }],
+        },
+      });
+      if (member === null) {
+        res.status(400).json({
+          message: "member not found!",
+          success: false,
+        });
+        return;
+      }
+      await prisma.member.delete({
+        where: {
+          id: member?.id,
+        },
+      });
+      const removedMessage = await prisma.message.create({
+        data: {
+          chatId,
+        body: `${adminUsername} removed ${targetUsername}.`,
+        senderId: userId,
+        type: "SYSTEM",
+        }
+      })
+      res.status(200).json({
+        message: "successfully removed member",
+        success: true,
+        removedMessage
+      });
+    }
+    catch(err){
+      next(err)
+    }
+  }
 export {
   getGroupChatMembers,
   getChatMessages,
   joinViaLink,
-  editChat,
+  editGroupChat,
   addMembers,
   leaveChat,
   deleteGroupChat,
@@ -900,4 +985,5 @@ export {
   createGroupChat,
   changeRole,
   markAsRead,
+  removeMember
 };

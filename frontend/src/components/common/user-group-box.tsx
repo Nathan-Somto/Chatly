@@ -14,7 +14,6 @@ interface UserProps extends UserBox {
 
 interface GroupProps extends GroupBox {
   type: "group";
-  
 }
 
 interface CommonProps {
@@ -33,13 +32,17 @@ export default function UserGroupBox(props: Props) {
       props.toggleLoading(false);
     },
   });
-  const {handleJoin} = JoinGroupChat({chatId: isGroup ? props.chatId : ''})
+  const { handleJoin } = JoinGroupChat({
+    chatId: isGroup ? props.chatId : "",
+    onComplete() {
+      props.toggleLoading(false);
+    },
+  });
   async function handleClick() {
     props.toggleLoading(true);
-    if(!isGroup){
+    if (!isGroup) {
       handleCreate();
-    }
-    else {
+    } else {
       handleJoin();
     }
   }

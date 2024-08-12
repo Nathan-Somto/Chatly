@@ -37,6 +37,7 @@ export default function DiscoverList() {
               lastSeen={item.lastSeen}
               username={item.username}
               toggleLoading={toggleLoading}
+              key={item.id}
             />
           ))}
           {isPending && (

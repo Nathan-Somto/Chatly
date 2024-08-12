@@ -59,8 +59,8 @@ function Hero() {
           </div>
         </div>
       </div>
-      <figure data-aos="zoom-in" className="h-[450px]  lg:w-[550px]  w-full max-w-[700px] lg:max-w-none lg:h-auto">
-        <img src={heroImage} alt="" className="h-full object-left w-full object-contain" />
+      <figure data-aos="zoom-in" className="h-[450px]  lg:w-[550px]  w-full max-w-[1000px] lg:max-w-none lg:h-auto">
+        <img src={heroImage} alt="" className="h-full object-left  w-full object-contain" />
       </figure>
     </header>
   );

@@ -48,6 +48,7 @@ export type GroupChatResponse = {
     name?: string | null;
     description?: string | null;
     privacy: PrivacyType | null;
+    inviteCode?: string | null;
   };
 };
 export type GetMessagesResponse = PaginatedResponse<
@@ -56,7 +57,7 @@ export type GetMessagesResponse = PaginatedResponse<
 >;
 export type SearchDataResponse = {
   users: UserBox[],
-  groupChats?: GroupBox & {isGroup: boolean}[]
+  groupChats?: (GroupBox & {isGroup: boolean})[]
 }
 export type GetUsersResponse = Pick<SearchDataResponse, 'users'>;
 export type GetGroupMembersResponse= {chatMembers: UserBox[]}
@@ -67,6 +68,12 @@ export type MessageEmit = {
   message: Message["message"];
   chatInfo:Omit<ChatBoxType, 'message'>;
 };
+export type MessageDeleteEmit = {
+  chatId: string;
+  deletedMessageId: string;
+  prevMessage: MessageEmit['message'] | null;
+  userId: string;
+}
 /** Ends Here **/
 
 /** Payload types **/
@@ -100,5 +107,8 @@ export type EditGroupChatPayload = {
   name: string,
   description: string,
   privacy: PrivacyType
+}
+export type JoinGroupChatPayload = {
+  inviteCode: string
 }
 /** Ends Here **/

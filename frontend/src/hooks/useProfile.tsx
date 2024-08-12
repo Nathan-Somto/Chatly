@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-type Profile = {
+export type Profile = {
   username: string;
   bio: string;
   avatar: string;
@@ -9,6 +9,8 @@ type Profile = {
   clerkId: string;
   isOnboarded: boolean;
   email: string;
+  wallpaperUrl?: string;
+  wallpaperType?: "DEFAULT" | "UPLOADED";
 } | null;
 
 const initialProfile: Profile = null;

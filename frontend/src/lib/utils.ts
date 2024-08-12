@@ -3,6 +3,9 @@ import { twMerge } from "tailwind-merge"
 import { AxiosError } from "axios";
 import { mainApi } from "./axios";
 import toast from "react-hot-toast";
+import { Profile } from "@/hooks/useProfile";
+import { ModifiedMessage } from "@/hooks/useMessages";
+import { v4 } from "uuid";
 export function article(name: string) {
   // based on first character of name returns a or an
   // use regex and in case i have an empty string return the empty string
@@ -84,3 +87,48 @@ export function generateUsername(name: string){
   }
   return name+digits;
 }
+export function createOptimisticMessage(
+  profile: NonNullable<Profile>,
+  body: string,
+  chatId: string,
+  resourceUrl: string | null,
+  resource_type: "image" | "video",
+  isReply: boolean,
+  replyTo: ReplyTo | null
+): ModifiedMessage{
+  const resource_type_map: { [key: string]: MessageType } = {
+    image: "IMAGE",
+    video: "VIDEO",
+  };
+
+  let optimisticMessage: ModifiedMessage = {
+    Sender: {
+      username: profile.username,
+      avatar: profile.avatar,
+      id: profile.id,
+      Member: [{ role: "MEMBER" }],
+    },
+    body,
+    chatId,
+    id: v4(),
+    createdAt: new Date(),
+    isEditted: false,
+    readByIds: [],
+    resourceUrl,
+    senderId: profile.id,
+    type: resourceUrl ? resource_type_map[resource_type] : "TEXT",
+    sending: true,
+    isReply,
+    parentMessage: null,
+  };
+
+  if (isReply && replyTo) {
+    optimisticMessage.parentMessage = {
+      body: replyTo.text,
+      avatar: replyTo.avatar,
+      username: replyTo.username,
+    };
+  }
+
+  return optimisticMessage;
+};

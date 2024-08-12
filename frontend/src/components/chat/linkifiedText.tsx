@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils';
-import React from 'react';
 
 const linkifyText = (text: string, isOwn:boolean) => {
   const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi;
@@ -30,7 +29,7 @@ const linkifyText = (text: string, isOwn:boolean) => {
         </a>
       );
     }
-    return (<span>{part}</span>);
+    return (<span key={index}>{part}</span>);
   });
 };
 

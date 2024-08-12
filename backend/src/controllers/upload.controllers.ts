@@ -12,7 +12,6 @@ export const upload = async (
       return res.status(400).send("No files were uploaded.");
     }
     const file = req.files.file as fileUpload.UploadedFile;
-    console.log("[file]: ", file);
     const fileBase64 = Buffer.from(file.data).toString("base64");
     const fileDataURI = `data:${file.mimetype};base64,${fileBase64}`;
     const url = await uploadFile(fileDataURI);

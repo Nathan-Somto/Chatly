@@ -8,12 +8,13 @@ import chatRouter from "./routes/chat.routes";
 import messageRouter from "./routes/message.routes";
 import searchRouter from "./routes/search.routes";
 import fileUpload from "express-fileupload";
+import morgan from "morgan";
 import { errorHandler } from "./middlewares/errorHandler";
 import { upload } from "./controllers/upload.controllers";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import { updateOnlineStatus } from "./utils/updateOnlineStatus";
-import { MessageEmit } from "./types";
+import { MessageDeleteEmit, MessageEmit } from "./types";
 import swaggerJSDoc from "swagger-jsdoc";
 import { swaggerOptions } from "./swaggerOptions";
 import swaggerUi from "swagger-ui-express";
@@ -56,6 +57,7 @@ app.use(
     },
   })
 );
+app.use(morgan("dev"));
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 app.use(
   "/api/docs",
@@ -63,13 +65,13 @@ app.use(
   swaggerUi.setup(swaggerSpec, { explorer: true })
 );
 app.post("/api/v1/upload", upload);
+app.use("/api/v1/search", searchRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chats", chatRouter);
 app.use("/api/v1/messages", messageRouter);
-app.use("api/v1/search", searchRouter);
 app.use(errorHandler);
 io.on("connection", (socket) => {
-   console.log("User connected:", socket.id);
+  console.log("User connected:", socket.id);
   // updates the user's online status.
   socket.on("userConnected", async (userId: string) => {
     await updateOnlineStatus(userId);
@@ -81,14 +83,14 @@ io.on("connection", (socket) => {
     console.log(`user ${userId} joined the chat ${chatId}`);
   });
   // for leaving a particular room (direct message or group chat)
-  socket.on('leaveChat', ({chatId, userId})=>{
+  socket.on("leaveChat", ({ chatId, userId }) => {
     socket.leave(chatId);
     console.log(`user ${userId} left the chat ${chatId}`);
-  })
+  });
   // for sending a message
   socket.on("sendMessage", async ({ chatInfo, message }: MessageEmit) => {
     // update the sender's online status.
-    console.log("info: ", JSON.stringify(chatInfo, null,2));
+    console.log("info: ", JSON.stringify(chatInfo, null, 2));
     console.log("message: ", JSON.stringify(message, null, 2));
     await updateOnlineStatus(message.Sender.id);
     // use this to update both the chat list page and chat page.
@@ -97,27 +99,39 @@ io.on("connection", (socket) => {
       message,
     });
   });
-   // for updating a message
-  socket.on('updateMessage', async ({chatInfo, message}: MessageEmit) => {
-     // update the sender's online status.
-    await updateOnlineStatus(message.Sender.id);
-     // send the usual info (if it is in the ui of the frontend it is updated)
-    io.to(chatInfo.id).emit('messageUpdated', {
-      chatInfo,
-      message
-  })
-  
-  /*
-  // for deleting a message
-  socket.on('deleteMessage', () => {
+  // for updating a message
+  socket.on("updateMessage", async ({ chatInfo, message }: MessageEmit) => {
     // update the sender's online status.
-    // just send the id of the message being deleted. (if it is in the ui of the frontend it is removed)
- }) */
-  // if user is typing
+    await updateOnlineStatus(message.Sender.id);
+    // send the usual info (if it is in the ui of the frontend it is updated)
+    io.to(chatInfo.id).emit("messageUpdated", {
+      chatInfo,
+      message,
+    });
+  });
+  // for deleting a message
+  socket.on(
+    "deleteMessage",
+    async ({
+      chatId,
+      deletedMessageId,
+      prevMessage,
+      userId,
+    }: MessageDeleteEmit) => {
+      // update the sender's online status.
+      await updateOnlineStatus(userId);
+      io.to(chatId).emit("messageDeleted", {
+        chatId,
+        deletedMessageId,
+        prevMessage,
+        userId,
+      });
+    }
+  );
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
-}) });
+});
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend", "build")));
   app.get("*", (_, res) => {

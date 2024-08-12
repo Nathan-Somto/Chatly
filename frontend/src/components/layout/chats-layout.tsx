@@ -13,7 +13,7 @@ function ChatsLayout() {
   // data fetching of user chats comes here
   const { chatId } = useParams();
   const isChatPage = typeof chatId !== "undefined";
-  const { connect, disconnect, socket } = useSocketStore();
+  const { connect, disconnect, socket /* , isConnected */ } = useSocketStore();
   const { setProfile, profile } = useProfileStore();
   const {
     data: response,
@@ -31,31 +31,30 @@ function ChatsLayout() {
 
   useEffect(() => {
     const data = response?.data;
-    console.log(data, response);
-    if (data) {   
-        setProfile(data?.user);
-      }
+    if (data) {
+      setProfile(data?.user);
+    }
   }, [response]);
   useEffect(() => {
     let mounted = true;
     const handleReconnect = () => {
-      if (profile && profile.id && socket && mounted) {
+      if (profile?.id && mounted) {
         connect(import.meta.env.VITE_IO_URL, profile.id);
       }
-    }
-    if(profile && profile.id && socket) {
-      connect(import.meta.env.VITE_IO_URL, profile.id);
-      socket.on("disconnect", handleReconnect);
+    };
+    if (mounted && profile?.id) {
+      connect(import.meta.env.VITE_IO_URL, profile?.id);
+      socket?.on("disconnect", handleReconnect);
     }
     return () => {
-      mounted = false;
+      mounted = false;     
       disconnect();
       socket?.off("disconnect", handleReconnect);
     };
-  }, [profile, socket]);
+  }, [profile?.id]);
   return (
     <div>
-      <ConnectionStatus />
+      {socket && <ConnectionStatus />}
       <Sidebar />
       <main
         className={cn(

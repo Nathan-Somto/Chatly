@@ -6,13 +6,17 @@ export default function ConnectionStatus() {
   const { isConnected } = useSocketStore();
   // set a timer to remove it after a while
   useEffect(() => {
-    setShow(true);
-    const timer = setTimeout(() => {
-      setShow(false);
-    }, 7000);
-    return () => {
-      clearTimeout(timer);
-    };
+    let mounted = true;
+    if(isConnected && mounted) {
+      setShow(true);
+      const timer = setTimeout(() => {
+        setShow(false);
+      }, 7000);
+      return () => {
+        clearTimeout(timer);
+        mounted = false;
+      };
+    }
   }, [isConnected]);
   if (!show) return null;
   return (

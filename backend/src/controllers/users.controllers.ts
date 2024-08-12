@@ -149,6 +149,7 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
             createdAt: "desc",
           },
           select: {
+            id: true,
             body: true,
             createdAt: true,
             readByIds: true,
@@ -250,6 +251,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         isOnboarded: true,
         avatar: true,
         clerkId: true,
+        id:true
       },
     });
     res.status(201).json({

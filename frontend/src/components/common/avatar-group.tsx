@@ -13,7 +13,6 @@ function AvatarGroup({ avatars, size=48 }: Props) {
           ...new Array(3 -avatars.length).fill("unknown"),
         ]
       : avatars.slice(0,3);
-      console.log(avatarArr)
   const positionMap = {
     0: " z-[1] -top-1 left-2",
     1: "z-[2] -left-1 bottom-0",

@@ -12,4 +12,5 @@ interface GroupBox {
   avatars: string[];
   name: string;
   description: string;
+  isGroup: boolean;
 }

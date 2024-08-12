@@ -23,7 +23,6 @@ export default function UploadWidget({
         folder: "media/chats",
       },
       (err, result) => {
-        console.log(result, err)
         if (result?.event === "success") {
           onUploadComplete(result.info.secure_url, result.info.resource_type);
         }

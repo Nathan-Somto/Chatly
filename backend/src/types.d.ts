@@ -43,5 +43,12 @@ type MessageEmit = {
     bio?: string | null;
     inviteCode?: string | null;
     privacy?: PrivacyType | null;
+    imageUrl?: string | null;
   };
 };
+type MessageDeleteEmit = {
+  chatId: string;
+  deletedMessageId: string;
+  prevMessage: MessageEmit['message'] | null;
+  userId: string;
+}

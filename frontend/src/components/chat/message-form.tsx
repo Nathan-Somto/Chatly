@@ -8,25 +8,12 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "../ui/button";
-import {
-  useMemo,
-  useState,
-  useRef,
-  memo,
-  useTransition,
-  useEffect,
-} from "react";
+import { useMemo, useState, useRef, useTransition, useEffect } from "react";
 import { useAutoGrowTextarea } from "@/hooks/useAutoGrowTextarea";
-import { cn, displayError } from "@/lib/utils";
+import { cn, createOptimisticMessage, displayError } from "@/lib/utils";
 import { ModifiedMessage, useMessages } from "@/hooks/useMessages";
 import { useParams } from "react-router-dom";
-import { v4 } from "uuid";
-import EmojiPicker, {
-  EmojiClickData,
-  EmojiStyle,
-  PickerProps,
-  Theme,
-} from "emoji-picker-react";
+import { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-react";
 import { useTheme } from "../wrappers/theme-provider";
 import { useMessageOptions } from "@/hooks/useMessageOptions";
 import { useMutate } from "@/hooks/query/useMutate";
@@ -41,9 +28,7 @@ import { useActiveChat } from "@/hooks/useActiveChat";
 import { AxiosResponse } from "axios";
 import UploadWidget from "../common/upload-widget";
 import toast from "react-hot-toast";
-const MemoEmojiPicker = memo(({ ...props }: PickerProps) => (
-  <EmojiPicker {...props} />
-));
+import { MemoEmojiPicker } from "./memo-emoji-picker";
 
 function MessageForm() {
   const {
@@ -65,12 +50,11 @@ function MessageForm() {
   const isReply = replyTo !== null;
   const isEditting = editMessage !== null;
   const { profile } = useProfileStore();
-  const { addMessage, messages, setMessages } = useMessages();
-  // "http://res.cloudinary.com/dvw2zx08k/image/upload/v1722588927/media/chats/somto-profile-pic_iv1gcq.png"
-  const [resourceUrl, setResourceUrl] = useState<string | null>(
-    null
-  );
+  const { messages, setMessages } = useMessages();
+  const [resourceUrl, setResourceUrl] = useState<string | null>(null);
   const [resource_type, setResourceType] = useState<"image" | "video">("image");
+  const edittedMsgBodyRef = useRef<string | null>(null);
+  const [isSending, setIsSending] = useState<boolean>(false);
   const { socket } = useSocketStore();
   const { activeChat } = useActiveChat();
   useEffect(() => {
@@ -82,22 +66,64 @@ function MessageForm() {
     if (editMessage?.text) {
       setBody(editMessage.text);
     }
-  }, [editMessage]);
-  function onSuccess(response: AxiosResponse<any, any>) {
+  }, [editMessage?.text]);
+  function onSuccess(
+    responseData: AxiosResponse<any, any>["data"],
+    messagesCopy: ModifiedMessage[],
+    index?: number
+  ) {
+    if (messagesCopy.length === 0) return;
     // find the message which is sending and update it to sent
-    const foundMessage = messages.find((message) => message.sending);
-    if (foundMessage) {
-      const messagesCopy = messages.slice();
-      foundMessage.id = response.data?.message?.id;
+    let position = index !== undefined ? index : messagesCopy.length - 1;
+    const foundMessage = messagesCopy[position];
+    if (foundMessage && responseData.data?.id) {
+      foundMessage.id = responseData.data?.id;
       foundMessage.sending = false;
+      foundMessage.failed = false;
       setMessages(messagesCopy);
+      const { groupInfo, dmInfo } = activeChat;
+      let chatInfo: MessageEmit["chatInfo"] = {
+        id: chatId ?? "",
+        isGroup: true,
+        name: groupInfo?.name ?? "",
+        avatars: groupInfo?.avatars ?? [],
+        description: groupInfo?.description,
+        inviteCode: groupInfo?.inviteCode,
+        privacy: groupInfo?.privacy ?? null,
+        members: groupInfo?.members ?? [],
+      };
+      // this means it is a dm
+      if (dmInfo) {
+        chatInfo.name = profile?.username ?? "";
+        chatInfo.avatars = [profile?.avatar ?? ""];
+        chatInfo.bio = profile?.bio ?? null;
+        chatInfo.email = profile?.email ?? null;
+        chatInfo.lastSeen = new Date();
+        chatInfo.isGroup = false;
+      }
+      // emit chat through socket.io;
+      let messageEmit: MessageEmit = {
+        chatInfo,
+        message: { ...foundMessage },
+      };
+      delete (messageEmit.message as ModifiedMessage).sending;
+      delete (messageEmit.message as ModifiedMessage).failed;
+      if (isEditting) {
+        socket?.emit("updateMessage", messageEmit);
+      } else {
+        socket?.emit("sendMessage", messageEmit);
+      }
     }
   }
   function onError() {
     // find the message which is sending and update it to failed
-    const foundMessage = messages.find((message) => message.sending);
+    const foundMessage = messages?.find((message) => message.sending);
     if (foundMessage) {
-      const messagesCopy = messages.slice();
+      const messagesCopy = messages?.slice() ?? [];
+      if (isEditting && edittedMsgBodyRef) {
+        foundMessage.body = edittedMsgBodyRef.current;
+        edittedMsgBodyRef.current = body;
+      }
       foundMessage.sending = false;
       foundMessage.failed = true;
       setMessages(messagesCopy);
@@ -110,20 +136,19 @@ function MessageForm() {
   function onUploadError(err: any) {
     toast.error(displayError(err, "could not upload resource"));
   }
-  const { mutate: postMutate, isPending: isPosting } = useMutate({
+  const { mutateAsync: postMessage } = useMutate({
     defaultMessage: "Failed to send message",
     method: "post",
     route: "/messages",
-    onSuccess,
-    onError,
     displayToast: false,
   });
-  const { mutate: patchMutate, isPending: isPatching } = useMutate({
+  const { mutateAsync: patchMessage } = useMutate({
     defaultMessage: "Failed to edit message",
     method: "patch",
     route: `/messages/${editMessage?.id}`,
+    displayToast: false,
   });
-  const disableBtn = isPosting || isPatching;
+  const disableBtn = isSending;
   const hasReachedMaxHeight = useMemo(() => {
     if (textAreaRef.current) {
       return textAreaRef.current.clientHeight >= 80;
@@ -131,117 +156,76 @@ function MessageForm() {
     return false;
   }, [body]);
   function closeOption() {
-    onReply(null);
-    onEdit(null);
-    if (isEditting) {
-      setBody("");
+    if (isEditting || isReply) {
+      onReply(null);
+      onEdit(null);
     }
   }
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function resetMessageForm() {
+    setBody("");
+    setResourceUrl(null);
+    setResourceType("image");
+  }
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (body.length === 0 || !profile || !chatId) return;
-    const resource_type_map : {
-      [key : string]: MessageType
-    } = {
-      "image": 'IMAGE',
-      "video": "VIDEO"
-    }
+    if (isEditting && !editMessage) return;
+    if (!socket) return;
+    setIsSending(true);
     try {
-      let optimisticMessage: ModifiedMessage = {
-        Sender: {
-          username: profile.username,
-          avatar: profile.avatar,
-          id: profile.id,
-          Member: [
-            {
-              role: "MEMBER",
-            },
-          ],
-        },
+      const optimisticMessage = createOptimisticMessage(
+        profile,
         body,
         chatId,
-        id: v4(),
-        createdAt: new Date(),
-        isEditted: false,
-        readByIds: [],
         resourceUrl,
-        senderId: profile?.id ?? null,
-        type: resourceUrl !== null ? resource_type_map[resource_type] : "TEXT",
-        sending: true,
+        resource_type,
         isReply,
-        parentMessage: null,
-      };
-      // if it is a reply message
-      if (isReply) {
-        optimisticMessage.parentMessage = {
-          body: replyTo?.text,
-          avatar: replyTo?.avatar,
-          username: replyTo?.username,
-        };
-      }
+        replyTo
+      );
       // optimistic update with sending;
+      const messagesCopy = messages?.slice() ?? [];
       if (isEditting) {
-        // find the message
-        const messagesCopy = messages.slice();
         const foundMessage = messagesCopy[editMessage.index];
+        if(!foundMessage) return;
+        edittedMsgBodyRef.current = foundMessage.body;
         foundMessage.isEditted = true;
         foundMessage.body = body;
         foundMessage.sending = true;
-        optimisticMessage = foundMessage;
-        setMessages(messagesCopy);
       } else {
-        addMessage(optimisticMessage);
+        messagesCopy.push(optimisticMessage);
       }
+      setMessages(messagesCopy);
       // store in db;
-      let chatInfo: MessageEmit['chatInfo'] = {
-        id: chatId,
-        isGroup: activeChat?.groupInfo?.isGroup ?? false,
-        name: activeChat?.dmInfo?.username ?? activeChat?.groupInfo?.name ?? "",
-        // ensure avatars is always string[]
-        avatars: activeChat?.groupInfo?.avatars ?? [
-          activeChat?.dmInfo?.avatar ?? "",
-        ],
-        description: activeChat?.groupInfo?.description,
-        inviteCode: activeChat?.groupInfo?.inviteCode
-      };
       let createMessagePayload: CreateMessagePayload = {
         body,
         chatId,
-        // add the parent id to the message payload
         parentMessageId: replyTo?.parentId ?? null,
-        resourceUrl: null,
+        resourceUrl: optimisticMessage.resourceUrl,
         userId: profile.id,
-        type: "TEXT",
+        type: optimisticMessage.type,
       };
       let editMessagePayload: EditMessagePayload = {
         body,
         chatId,
         userId: profile.id,
       };
+      resetMessageForm();
+      let response: AxiosResponse<any, any> | undefined;
       if (isEditting) {
-        patchMutate(editMessagePayload);
+        response = await patchMessage(editMessagePayload);
       } else {
-        postMutate(createMessagePayload);
+        response = await postMessage(createMessagePayload);
       }
-      // emit chat through socket.io;
-      let messageEmit: MessageEmit = {
-        chatInfo,
-        message: optimisticMessage,
-      };
-      delete (messageEmit.message as ModifiedMessage).sending;
-      if (isEditting) {
-      } else {
-        socket?.emit("sendMessage", messageEmit);
+      if (!response.data) {
+        throw new Error("message failed to send");
       }
-      // change state to sent via the onSuccess;
-      if (isEditting || isReply) {
-        closeOption();
-      }
-      setBody("");
-      setResourceUrl(null);
-      setResourceType("image");
+      onSuccess(response.data, messagesCopy, editMessage?.index);
     } catch (err) {
+      onError();
       console.log(err);
+    } finally {
+      closeOption();
+      setIsSending(false);
     }
   }
   function handleEmojiClick(emojiDataObj: EmojiClickData, _: MouseEvent) {
@@ -280,7 +264,10 @@ function MessageForm() {
             </p>
           </div>
           <Button
-            onClick={closeOption}
+            onClick={() => {
+              resetMessageForm();
+              closeOption();
+            }}
             size={"icon"}
             className="absolute h-7 w-7 top-0 right-2 dark:text-gray-200 text-gray-800"
             variant={"ghost"}
@@ -374,7 +361,7 @@ function MessageForm() {
             }
           }}
           className={cn(
-            "w-[70%] max-sm:max-w-[300px] max-sm:w-[80%] flex-shrink-0 outline-none focus:border-none placeholder-neutral-400 bg-transparent h-10 dark:text-gray-200 text-gray-700 resize-none max-h-20  overflow-hidden",
+            "w-[70%] max-sm:max-w-[300px] flex-shrink-0 outline-none focus:border-none placeholder-neutral-400 bg-transparent h-10 dark:text-gray-200 text-gray-700 resize-none max-h-20  overflow-hidden",
             hasReachedMaxHeight && "overflow-auto h-32"
           )}
         />

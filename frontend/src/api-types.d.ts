@@ -32,6 +32,9 @@ export type CreateDmChatResponse = {
         username: string;
         avatar: string;
         lastSeen: Date;
+        bio: string;
+        email: string;
+        id: string;
       };
     }[];
     id: string;

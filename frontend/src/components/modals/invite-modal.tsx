@@ -9,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import toast from "react-hot-toast";
 
@@ -20,7 +19,7 @@ type Props = {
 }
 export function InviteModal({open, inviteLink, setVisiblity}: Props) {
   function handleCopy(){
-    navigator.clipboard.writeText(inviteLink)
+    navigator.clipboard.writeText(`${window.location.origin}/${inviteLink}`)
     toast.success('successfully copied link');
   }
   return (
@@ -39,7 +38,7 @@ export function InviteModal({open, inviteLink, setVisiblity}: Props) {
             </label>
             <input
               id="link"
-              defaultValue={"https://"+inviteLink}
+              defaultValue={`${window.location.origin}/${inviteLink}`}
               readOnly
               className="dark:text-gray-950 underline  bg-gray-100 dark:bg-gray-300 rounded-lg p-2 w-full"
             />

@@ -139,11 +139,11 @@ function ChatBox({
                   : "text-black font-medium dark:text-gray-400"
               )}
             >
-              {type === "TEXT"
+              {type === "TEXT" || type === 'SYSTEM'
                 ? body === null
                   ? "start a conversation!"
                   : body
-                : `sent ${article(lowercaseType)}${lowercaseType}!`}
+                : `sent ${article(lowercaseType)} ${lowercaseType}!`}
             </p>
           </div>
         </div>

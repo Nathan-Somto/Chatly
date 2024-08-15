@@ -16,16 +16,12 @@ function ChatHeader() {
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const activeChat = useActiveChat((state) => state.activeChat);
   const {profile} = useProfileStore();
-  console.log(activeChat);
   const members = useMemo(() => {
     return (
       activeChat?.groupInfo?.members ?? []
     );
   }, [activeChat]);
-  const { lastSeen, isOnline } = useMemo(
-    () => formatLastSeen(activeChat?.dmInfo?.lastSeen ?? new Date()),
-    [activeChat]
-  );
+  const { lastSeen, isOnline } = formatLastSeen(activeChat?.dmInfo?.lastSeen ?? new Date());
   const navigate = useNavigate();
   function handleDrawerOpen() {
     setOpenDrawer(true);

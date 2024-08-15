@@ -116,7 +116,7 @@ export function createOptimisticMessage(
     readByIds: [],
     resourceUrl,
     senderId: profile.id,
-    type: resourceUrl ? resource_type_map[resource_type] : "TEXT",
+    type: resourceUrl !== null ? resource_type_map[resource_type] : "TEXT",
     sending: true,
     isReply,
     parentMessage: null,

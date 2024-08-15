@@ -30,7 +30,7 @@ export default function DeleteModal({
     onOpenChange(false);
   }
   return (
-    <Dialog open={open} onOpenChange={(open) => onOpenChange(open)}>
+    <Dialog open={open} onOpenChange={(open) => !isPending && onOpenChange(open)}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

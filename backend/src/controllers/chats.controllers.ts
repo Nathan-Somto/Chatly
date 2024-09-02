@@ -5,12 +5,13 @@ import { checkIfAdminOrOwner } from "../utils/checkIfAdminOrOwner";
 import { formatGroupchatResponse } from "../utils/formatGroupchatResponse";
 import { createSystemMessage } from "../utils/createSystemMessage";
 
+
 /**
  * @method GET
  * @description gets messages under a specific chat
  * @param req
  * @param res
- * @route /api/v1/chats/:chatId/messages?page&pageSize
+ * @route /api/v1/chats/:chatId/messages?cursor=string
  */
 const getChatMessages = async (
   req: Request,
@@ -19,88 +20,96 @@ const getChatMessages = async (
 ) => {
   try {
     const { chatId } = req.params;
-    let { page = 1, pageSize = 10 } = req.query;
-    const { userId } = req.body;
-    if (isNaN(+pageSize)) {
-      pageSize = 10;
-    }
-    if (isNaN(+page) || +page <= 0) {
-      page = 1;
-    }
-    const q = [
+    let { cursor } = req.query;
+    const q = 
       {
-        members: {
-          some: {
-            userId,
-          },
+        chatId,
+      };
+   
+    let messages = [];
+    if (cursor && typeof cursor === "string") {
+      messages = await prisma.message.findMany({
+        take: 10,
+        cursor: {
+          id: cursor,
         },
-      },
-      {
-        id: chatId,
-      },
-    ];
-    const totalSize = await prisma.chat.count({
-      where: {
-        AND: q,
-      },
-    });
-    const pages = Math.ceil(totalSize / (pageSize as number));
-    page = Math.min(pages, page as number);
-    const messages = await prisma.chat.findFirst({
-      where: {
-        AND: q,
-      },
-      include: {
-        message: {
-          take: pageSize as number,
-          skip: (page - 1) * (pageSize as number),
-          orderBy: {
-            createdAt: "asc",
+        skip: 1,
+        where: q,
+        orderBy: {
+          createdAt: "asc"
+        },
+        select: {
+          isEditted: true,
+          readByIds: true,
+          resourceUrl: true,
+          isReply: true,
+          type: true,
+          chatId: true,
+          senderId: true,
+          id: true,
+          body: true,
+          Sender: {
+            select: {
+              avatar: true,
+              username: true,
+            },
           },
-          select: {
-            resourceUrl: true,
-            body: true,
-            isEditted: true,
-            isReply: true,
-            parentMessageId: true,
-            id: true,
-            type: true,
-            readByIds: true,
-            createdAt: true,
-            Sender: {
-              select: {
-                avatar: true,
-                username: true,
-                id: true,
-                Member: {
-                  take: 1,
-                  where: {
-                    chatId,
-                  },
-                  select: {
-                    role: true,
-                  },
+          createdAt: true,
+          ParentMessage: {
+            select: {
+              body: true,
+              Sender: {
+                select: {
+                  avatar: true,
+                  username: true,
                 },
               },
             },
-            ParentMessage: {
-              select: {
-                Sender: {
-                  select: {
-                    avatar: true,
-                    username: true,
-                  },
+          },
+        }
+      });
+    } else {
+      messages = await prisma.message.findMany({
+        take: 10,
+        where: q,
+        orderBy: {
+          createdAt: "asc"
+        },
+        select: {
+          isEditted: true,
+          readByIds: true,
+          resourceUrl: true,
+          isReply: true,
+          type: true,
+          chatId: true,
+          senderId: true,
+          id: true,
+          body: true,
+          Sender: {
+            select: {
+              avatar: true,
+              username: true,
+            },
+          },
+          createdAt: true,
+          ParentMessage: {
+            select: {
+              body: true,
+              Sender: {
+                select: {
+                  avatar: true,
+                  username: true,
                 },
-                body: true,
               },
             },
           },
-        },
-      },
-    });
-    const formattedMessages = messages?.message.map((message) => ({
+        }
+      });
+    }
+  
+    const formattedMessages = messages?.map((message) => ({
       ...message,
-      ParentMessage: message?.ParentMessage
+      ParentMessage: message.ParentMessage
         ? {
             avatar: message.ParentMessage.Sender.avatar,
             userame: message.ParentMessage.Sender.username,
@@ -108,12 +117,15 @@ const getChatMessages = async (
           }
         : null,
     }));
+    console.log(JSON.stringify(formattedMessages, null, 2));
+    let nextCursor = null;
+    if(cursor && formattedMessages?.length === 10){
+      nextCursor = formattedMessages[formattedMessages?.length - 1].id;
+    }
     res.status(200).json({
       message: "chat's messages",
       messages: formattedMessages ?? [],
-      pages,
-      pageSize,
-      page,
+      nextCursor,
       success: true,
     });
   } catch (err) {
@@ -248,9 +260,9 @@ const createGroupChat = async (
       const firstMessage = await createSystemMessage({
         userId: ownerId,
         chatId: groupChat.id,
-        message: `${ownerName} created a group chat!`
-      })
-      const formattedGroupChat =  formatGroupchatResponse(groupChat);
+        message: `${ownerName} created a group chat!`,
+      });
+      const formattedGroupChat = formatGroupchatResponse(groupChat);
       console.log(JSON.stringify(formattedGroupChat, null, 2));
       res.status(201).json({
         message: "successfully created group chat!",
@@ -363,6 +375,9 @@ const createDmChat = async (
                   username: true,
                   avatar: true,
                   lastSeen: true,
+                  bio: true,
+                  email: true,
+                  id: true,
                 },
               },
             },
@@ -401,6 +416,9 @@ const createDmChat = async (
                   username: true,
                   avatar: true,
                   lastSeen: true,
+                  bio: true,
+                  email: true,
+                  id: true,
                 },
               },
             },
@@ -450,7 +468,7 @@ const joinViaLink = async (req: Request, res: Response, next: NextFunction) => {
     }
     const userId = user.id;
     const { chatId } = req.params;
-    const groupChat = await prisma.chat.findUnique({
+    const groupChat = await prisma.chat.findFirst({
       where: {
         id: chatId,
         inviteCode,
@@ -478,7 +496,7 @@ const joinViaLink = async (req: Request, res: Response, next: NextFunction) => {
         success: true,
       });
     }
-  const updatedGroupChat =  await prisma.chat.update({
+    const updatedGroupChat = await prisma.chat.update({
       where: {
         id: chatId,
       },
@@ -503,14 +521,14 @@ const joinViaLink = async (req: Request, res: Response, next: NextFunction) => {
             },
           },
         },
-      }
+      },
     });
     const formattedGroupChat = formatGroupchatResponse(updatedGroupChat);
     const joinedMessage = await createSystemMessage({
       userId,
       chatId,
-      message: `${user.username} joined the group chat via the invite link`
-    })
+      message: `${user.username} joined the group chat via the invite link`,
+    });
     return res.status(200).json({
       chatId,
       message: "user has joined the group chat!",
@@ -600,8 +618,8 @@ const joinPublicGroupChat = async (
     const joinedMessage = await createSystemMessage({
       userId,
       chatId,
-      message: `${username} joined the group chat!`
-    })
+      message: `${username} joined the group chat!`,
+    });
     const formattedGroupChat = formatGroupchatResponse(updatedGroupChat);
     return res.status(200).json({
       message: "successfully added user to group chat!",
@@ -620,7 +638,11 @@ const joinPublicGroupChat = async (
  * @requires checkIfAdmin
  * @route /api/v1/chats/:chatId
  */
-const editGroupChat = async (req: Request, res: Response, next: NextFunction) => {
+const editGroupChat = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const clerkId = req.auth.userId;
     const { chatId } = req.params;
@@ -678,7 +700,7 @@ const editGroupChat = async (req: Request, res: Response, next: NextFunction) =>
               },
             },
           },
-        }
+        },
       });
       const formattedGroupChat = formatGroupchatResponse(updatedGroupChat);
       res.status(200).json({
@@ -962,53 +984,53 @@ const deleteGroupChat = async (
 const removeMember = async (
   req: Request,
   res: Response,
-  next: NextFunction) => {
-    try {
-      const { adminUsername, userId, targetUserId, targetUsername } = req.body;
-      const { chatId } = req.params;
-      const isAdminOrOwner = await checkIfAdminOrOwner(userId, chatId);
-      if (!isAdminOrOwner) {
-        res.status(400).json({
-          message: "user is not an admin or owner",
-          success: false,
-        });
-        return;
-      }
-      const member = await prisma.member.findFirst({
-        where: {
-          AND: [{ chatId }, { userId: targetUserId }],
-        },
+  next: NextFunction
+) => {
+  try {
+    const { adminUsername, userId, targetUserId, targetUsername } = req.body;
+    const { chatId } = req.params;
+    const isAdminOrOwner = await checkIfAdminOrOwner(userId, chatId);
+    if (!isAdminOrOwner) {
+      res.status(400).json({
+        message: "user is not an admin or owner",
+        success: false,
       });
-      if (member === null) {
-        res.status(400).json({
-          message: "member not found!",
-          success: false,
-        });
-        return;
-      }
-      await prisma.member.delete({
-        where: {
-          id: member?.id,
-        },
+      return;
+    }
+    const member = await prisma.member.findFirst({
+      where: {
+        AND: [{ chatId }, { userId: targetUserId }],
+      },
+    });
+    if (member === null) {
+      res.status(400).json({
+        message: "member not found!",
+        success: false,
       });
-      const removedMessage = await prisma.message.create({
-        data: {
-          chatId,
+      return;
+    }
+    await prisma.member.delete({
+      where: {
+        id: member?.id,
+      },
+    });
+    const removedMessage = await prisma.message.create({
+      data: {
+        chatId,
         body: `${adminUsername} removed ${targetUsername}.`,
         senderId: userId,
         type: "SYSTEM",
-        }
-      })
-      res.status(200).json({
-        message: "successfully removed member",
-        success: true,
-        removedMessage
-      });
-    }
-    catch(err){
-      next(err)
-    }
+      },
+    });
+    res.status(200).json({
+      message: "successfully removed member",
+      success: true,
+      removedMessage,
+    });
+  } catch (err) {
+    next(err);
   }
+};
 export {
   getGroupChatMembers,
   getChatMessages,
@@ -1022,5 +1044,5 @@ export {
   createGroupChat,
   changeRole,
   markAsRead,
-  removeMember
+  removeMember,
 };

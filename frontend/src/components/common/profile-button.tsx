@@ -15,7 +15,7 @@ const ProfileButton = () => {
   const navigate = useNavigate();
 
   if (!profile) return null;
-
+  console.log(profile.avatar)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

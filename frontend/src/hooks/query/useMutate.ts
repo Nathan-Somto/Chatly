@@ -39,9 +39,9 @@ function useMutate<T>({
         if(err.response?.data?.unauthenticated || err?.response?.status === 401){
           refetchToken();
         }
-      }
-      if (onError) {
-        onError();
+        if (onError) {
+          onError(err);
+        }
       }
       if (displayToast) {
         toast.error(displayError(err, defaultMessage));

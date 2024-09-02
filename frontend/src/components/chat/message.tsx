@@ -19,18 +19,17 @@ import { useProfileStore } from "@/hooks/useProfile";
 import ProfileBox from "./profile-box";
 
 function Message({
-  message: {
-    Sender: { avatar, username, id: senderId },
-    body,
-    createdAt,
-    isEditted,
-    readByIds,
-    id,
-    resourceUrl,
-    type,
-    isReply,
-    parentMessage,
-  },
+  Sender: { avatar, username },
+  senderId,
+  body,
+  createdAt,
+  isEditted,
+  readByIds,
+  id,
+  resourceUrl,
+  type,
+  isReply,
+  parentMessage,
   openModal,
   sending,
   failed,
@@ -161,7 +160,10 @@ function Message({
                       <P className="flex items-center gap-2 opacity-70 text-sm">
                         <span>Sending</span>{" "}
                         <span>
-                          <MoreHorizontalIcon className="animate-bounce" size={14} />
+                          <MoreHorizontalIcon
+                            className="animate-bounce"
+                            size={14}
+                          />
                         </span>
                       </P>
                     ) : failed ? (

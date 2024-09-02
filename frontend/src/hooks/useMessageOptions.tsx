@@ -1,51 +1,63 @@
 import { create } from "zustand";
 
 type MessageOptions = {
-    replyTo: ReplyTo | null;
-    editMessage: EditMessage | null;
-    deleteModal: {
-        id: string;
-        open: boolean;
-    };
+  replyTo: ReplyTo | null;
+  editMessage: EditMessage | null;
+  deleteModal: {
+    id: string;
+    open: boolean;
+    index: number;
+  };
+  disabled: boolean;
 };
-type MessageOptionsState =  {
+type MessageOptionsState = {
   messageOptions: MessageOptions;
   onEdit: (message: EditMessage | null) => void;
   onReply: (message: ReplyTo | null) => void;
-  toggleDeleteModal: (deleteModal:{
-    id: string;
-    open: boolean;
-  }) => void;
-}
-
-const useMessageOptions = create<MessageOptionsState>((set) => ({
-  messageOptions: {
-    editMessage: null,
-    replyTo: null,
-    deleteModal: {
-        id: '',
-        open: false
-    }
+  toggleDeleteModal: (deleteModal: MessageOptions["deleteModal"]) => void;
+  toggleDisabled: (disabled: boolean) => void;
+  resetOptions: () => void;
+};
+const initialState = {
+  editMessage: null,
+  replyTo: null,
+  deleteModal: {
+    id: "",
+    open: false,
+    index: -1,
   },
-  onEdit: (data) => set((state) => ({ 
-    messageOptions : {
+  disabled: false,
+}
+const useMessageOptions = create<MessageOptionsState>((set) => ({
+  messageOptions: initialState,
+  onEdit: (data) =>
+    set((state) => ({
+      messageOptions: {
         ...state.messageOptions,
-        editMessage: data
-    }
-   })),
+        editMessage: data,
+      },
+    })),
   onReply: (data) =>
     set((state) => ({
       messageOptions: {
         ...state.messageOptions,
         replyTo: data,
-      }
+      },
     })),
-    toggleDeleteModal: (data) =>
-        set((state) => ({
-          messageOptions: {
-            ...state.messageOptions,
-            deleteModal: data,
-          }
-        })),
+  toggleDeleteModal: (data) =>
+    set((state) => ({
+      messageOptions: {
+        ...state.messageOptions,
+        deleteModal: data,
+      },
+    })),
+  toggleDisabled: (data) =>
+    set((state) => ({
+      messageOptions: {
+        ...state.messageOptions,
+        disabled: data,
+      },
+    })),
+    resetOptions: () => set(() => ({messageOptions: initialState})),
 }));
-export {useMessageOptions}
+export { useMessageOptions };

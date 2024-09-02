@@ -1,12 +1,7 @@
 type Message = {
-  message: {
     Sender: {
-      id: string;
       username: string;
       avatar: string;
-      Member: {
-        role: MemberRole;
-      }[];
     };
     id: string;
     body: string | null;
@@ -24,7 +19,6 @@ type Message = {
     } | null;
     isReply: boolean;
   };
-};
 type ReplyTo =  {
   avatar: string;
   username: string;

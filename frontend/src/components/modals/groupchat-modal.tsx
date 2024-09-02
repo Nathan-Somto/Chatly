@@ -21,10 +21,12 @@ import { useActiveChat } from "@/hooks/useActiveChat";
 import { EyeOff } from "lucide-react";
 import { Switch } from "../ui/switch";
 import Small from "../ui/typo/Small";
+import { cn } from "@/lib/utils";
 type Props = {
   open: boolean;
   setModal: (value: boolean, isGroup: boolean) => void;
   isCreateGroup?: boolean;
+  initialMemberIds?: string[];
 };
 
 const AddMembersSchema = z.object({
@@ -38,7 +40,6 @@ const AddMembersSchema = z.object({
     .min(1)
     .readonly(),
 });
-
 const createGroupChatSchema = AddMembersSchema.extend({
   name: z.string(),
   description: z
@@ -52,7 +53,12 @@ const createGroupChatSchema = AddMembersSchema.extend({
 type AddMembersSchemaType = z.infer<typeof AddMembersSchema>;
 type CreateGroupSchemaType = z.infer<typeof createGroupChatSchema>;
 
-function GroupChatModal({ open, setModal, isCreateGroup = true }: Props) {
+function GroupChatModal({
+  open,
+  setModal,
+  isCreateGroup = true,
+  initialMemberIds,
+}: Props) {
   const schema = isCreateGroup ? createGroupChatSchema : AddMembersSchema;
   const {
     register,
@@ -90,7 +96,7 @@ function GroupChatModal({ open, setModal, isCreateGroup = true }: Props) {
         });
       });
       // emit the new message to the room.
-      socket?.emit("newMessage", {
+      socket?.emit("sendMessage", {
         message: response.data?.firstMessage,
         chatInfo: response.data?.groupChat,
       });
@@ -102,6 +108,9 @@ function GroupChatModal({ open, setModal, isCreateGroup = true }: Props) {
           name: response.data?.groupChat?.name,
           avatars: response.data?.avatars,
           members: response.data?.members,
+          description: response.data?.groupChat?.description,
+          inviteCode: response.data?.groupChat?.inviteCode,
+          privacy: response.data?.groupChat?.privacy,
         },
         dmInfo: null,
       });
@@ -110,14 +119,18 @@ function GroupChatModal({ open, setModal, isCreateGroup = true }: Props) {
   });
   useEffect(() => {
     if (response) {
-      setMemberOptions(
-        response.data?.users?.map((user) => ({
-          label: user.username,
-          value: user.id,
-        }))
-      );
+      let selectValues = response.data?.users?.map((user) => ({
+        label: user.username,
+        value: user.id,
+      }));
+      if (initialMemberIds) {
+        selectValues = selectValues.filter(
+          (item) => !initialMemberIds.includes(item.value)
+        );
+      }
+      setMemberOptions(selectValues);
     }
-  }, [response]);
+  }, [response, initialMemberIds]);
   const members = watch("members");
   const privacy = watch("privacy");
   async function onSubmit(data: AddMembersSchemaType | CreateGroupSchemaType) {
@@ -139,7 +152,12 @@ function GroupChatModal({ open, setModal, isCreateGroup = true }: Props) {
   }
   return (
     <Dialog open={open} onOpenChange={(open) => setModal(open, true)}>
-      <DialogContent className="h-[500px] overflow-auto  pb-5">
+      <DialogContent
+        className={cn(
+          "h-[500px] overflow-auto  pb-5",
+          !isCreateGroup && "h-[300px]"
+        )}
+      >
         <DialogHeader className="mt-2 flex items-center gap-x-2 flex-row">
           {" "}
           <GroupIcon size={28} />
@@ -166,31 +184,31 @@ function GroupChatModal({ open, setModal, isCreateGroup = true }: Props) {
                 width={50}
                 className="max-h-[100px]"
               />
+              <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-100 font-medium">
+                <P className="flex items-center gap-5">
+                  <span>
+                    <EyeOff size={20} />
+                  </span>{" "}
+                  <span>Make Group Private</span>
+                </P>
+                <Switch
+                  checked={privacy === "PRIVATE"}
+                  value={privacy}
+                  onCheckedChange={() => {
+                    if (privacy === "PRIVATE") {
+                      setValue("privacy", "PUBLIC");
+                      return;
+                    }
+                    setValue("privacy", "PRIVATE");
+                  }}
+                />
+              </div>
+              {privacy === "PUBLIC" && (
+                <Small className="text-neutral-500 my-1.5">
+                  Anyone can join this group without being added.
+                </Small>
+              )}
             </>
-          )}
-          <div className="flex items-center justify-between p-3 text-gray-600 dark:text-gray-100 font-medium">
-            <P className="flex items-center gap-5">
-              <span>
-                <EyeOff size={20} />
-              </span>{" "}
-              <span>Make Group Private</span>
-            </P>
-            <Switch
-              checked={privacy === "PRIVATE"}
-              value={privacy}
-              onCheckedChange={() => {
-                if (privacy === "PRIVATE") {
-                  setValue("privacy", "PUBLIC");
-                  return;
-                }
-                setValue("privacy", "PRIVATE");
-              }}
-            />
-          </div>
-          {privacy === "PUBLIC" && (
-            <Small className="text-neutral-500 my-1.5">
-              Anyone can join this group without being added.
-            </Small>
           )}
           <div>
             {isFetchingMembers ? (

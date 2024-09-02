@@ -29,32 +29,37 @@ import { AxiosResponse } from "axios";
 import UploadWidget from "../common/upload-widget";
 import toast from "react-hot-toast";
 import { MemoEmojiPicker } from "./memo-emoji-picker";
+import useChatStore from "@/hooks/useChats";
+import { ChatBoxMessageType, ChatBoxType } from "../chats";
 
 function MessageForm() {
   const {
     messageOptions: { editMessage, replyTo },
-    onReply,
-    onEdit,
+    resetOptions
   } = useMessageOptions();
   const { chatId } = useParams();
   const [body, setBody] = useState("");
   const hasStartedTyping = body.length > 0;
+  // refs
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const resourceUrlOverlayRef = useRef<HTMLDivElement | null>(null);
   const { textAreaRef } = useAutoGrowTextarea({ value: body });
+  const edittedMsgBodyRef = useRef<string | null>(null);
+  const oldMessageRef = useRef<ChatBoxMessageType | null>(null);
   const [showEmojiPicker, setEmojiPicker] = useState<boolean>(false);
   const [_emojiPickerObject, setEmojiPickerObject] =
     useState<EmojiClickData | null>(null);
   const [isPending, startTransition] = useTransition();
-  const { theme } = useTheme();
   const isReply = replyTo !== null;
   const isEditting = editMessage !== null;
-  const { profile } = useProfileStore();
-  const { messages, setMessages } = useMessages();
   const [resourceUrl, setResourceUrl] = useState<string | null>(null);
   const [resource_type, setResourceType] = useState<"image" | "video">("image");
-  const edittedMsgBodyRef = useRef<string | null>(null);
   const [isSending, setIsSending] = useState<boolean>(false);
+  // bounded store
+  const { theme } = useTheme();
+  const { chatList, setChatList } = useChatStore();
+  const { profile } = useProfileStore();
+  const { messages, setMessages } = useMessages();
   const { socket } = useSocketStore();
   const { activeChat } = useActiveChat();
   useEffect(() => {
@@ -113,13 +118,22 @@ function MessageForm() {
       } else {
         socket?.emit("sendMessage", messageEmit);
       }
+      oldMessageRef.current = null;
     }
   }
-  function onError() {
+  function onError(
+    messagesCopy: ModifiedMessage[],
+    chatListCopy: ChatBoxType[]
+  ) {
     // find the message which is sending and update it to failed
     const foundMessage = messages?.find((message) => message.sending);
+    // find the chat list that the message belongs to
+    const chatIndex = chatListCopy.findIndex((chat) => chat.id === chatId);
+    if (chatIndex === -1) return;
+    const chat = chatListCopy[chatIndex];
+    chat.message = oldMessageRef.current ?? chat.message;
+    oldMessageRef.current = null;
     if (foundMessage) {
-      const messagesCopy = messages?.slice() ?? [];
       if (isEditting && edittedMsgBodyRef) {
         foundMessage.body = edittedMsgBodyRef.current;
         edittedMsgBodyRef.current = body;
@@ -128,6 +142,7 @@ function MessageForm() {
       foundMessage.failed = true;
       setMessages(messagesCopy);
     }
+    setChatList(chatListCopy);
   }
   function onUploadComplete(result: string, resource_type: "image" | "video") {
     setResourceUrl(result);
@@ -157,8 +172,7 @@ function MessageForm() {
   }, [body]);
   function closeOption() {
     if (isEditting || isReply) {
-      onReply(null);
-      onEdit(null);
+     resetOptions();
     }
   }
   function resetMessageForm() {
@@ -172,6 +186,8 @@ function MessageForm() {
     if (isEditting && !editMessage) return;
     if (!socket) return;
     setIsSending(true);
+    const messagesCopy = messages?.slice() ?? [];
+    const chatListCopy = chatList.slice();
     try {
       const optimisticMessage = createOptimisticMessage(
         profile,
@@ -183,18 +199,35 @@ function MessageForm() {
         replyTo
       );
       // optimistic update with sending;
-      const messagesCopy = messages?.slice() ?? [];
+      // find the chat list that the message belongs to
+      const chatIndex = chatListCopy.findIndex((chat) => chat.id === chatId);
+      if (chatIndex === -1) return;
+      const chat = chatListCopy[chatIndex];
+      oldMessageRef.current = chat.message;
+
       if (isEditting) {
         const foundMessage = messagesCopy[editMessage.index];
-        if(!foundMessage) return;
+        if (!foundMessage) return;
         edittedMsgBodyRef.current = foundMessage.body;
         foundMessage.isEditted = true;
         foundMessage.body = body;
         foundMessage.sending = true;
+        if (chat.message.id === foundMessage.id) {
+          chat.message.body = foundMessage.body;
+        }
       } else {
+        chat.message = {
+          id: optimisticMessage.id,
+          body: optimisticMessage.body,
+          createdAt: optimisticMessage.createdAt,
+          readByIds: [],
+          senderId: optimisticMessage.senderId,
+          type: optimisticMessage.type,
+        };
         messagesCopy.push(optimisticMessage);
       }
       setMessages(messagesCopy);
+      setChatList(chatListCopy);
       // store in db;
       let createMessagePayload: CreateMessagePayload = {
         body,
@@ -221,7 +254,7 @@ function MessageForm() {
       }
       onSuccess(response.data, messagesCopy, editMessage?.index);
     } catch (err) {
-      onError();
+      onError(messagesCopy, chatListCopy);
       console.log(err);
     } finally {
       closeOption();

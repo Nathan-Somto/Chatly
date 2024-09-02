@@ -1,13 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { GetQueryType, GetResponse } from "./index.d";
-import React, { useEffect, useState } from "react";
-import { displayError } from "@/lib/utils";
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 import { mainApi } from "@/lib/axios";
 import { useGetToken } from "./useGetToken";
-import { AxiosError } from "axios";
-import { useAuth } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom";
+import { useRefetchHelper } from "./useRefetchHelper";
 
 export function useGetQuery<T>({
   enabled,
@@ -17,10 +13,7 @@ export function useGetQuery<T>({
   displayToast = false,
   refetchOnMount = false
 }: GetQueryType<T>) {
-  const {signOut} = useAuth();
-  const navigate = useNavigate();
   const [localEnabled, setLocalEnabled] = useState(false);
-  const [retryCount, setRetryCount] = useState(0); // Add state for retry count
   const { token, refetchToken } = useGetToken();
 
   useEffect(() => {
@@ -31,7 +24,7 @@ export function useGetQuery<T>({
     }
   }, [token, enabled]);
 
-  const { data, isPending, refetch, error, isError } = useQuery<GetResponse<T>>({
+  const { data, isPending, refetch, error, isError, ...rest } = useQuery<GetResponse<T>>({
     enabled: localEnabled,
     queryKey,
     queryFn: () => mainApi.get(route, {
@@ -39,29 +32,18 @@ export function useGetQuery<T>({
         Authorization: `Bearer ${token}`,
       }
     }),
-    refetchOnMount
+    refetchOnMount,
+    
   });
 
-  React.useEffect(() => {
-    if (displayToast && isError && error) {
-      console.error('[errorlog]', error);
-      if (error instanceof AxiosError) {
-        console.log(error?.response?.data);
-        if (error.response?.data?.unauthenticated) {
-          if (retryCount < 3) {
-            refetchToken();
-            refetch();
-            setRetryCount(prevCount => prevCount + 1);
-          } else {
-            console.error('Max retries reached. Stopping further retries.');
-            signOut();
-            navigate('/sign-in');
-          }
-        }
-      }
-      toast.error(displayError(error, defaultMessage));
-    }
-  }, [displayToast, isError, error, toast, retryCount, refetchToken, refetch]);
+  useRefetchHelper({
+    error,
+    isError,
+    refetch,
+    refetchToken,
+    defaultMessage,
+    displayToast
+  })
 
   return {
     data,
@@ -69,5 +51,6 @@ export function useGetQuery<T>({
     refetch,
     error,
     isError,
+    ...rest
   };
 }

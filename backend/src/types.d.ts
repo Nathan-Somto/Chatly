@@ -8,12 +8,8 @@ declare global {
 type MessageEmit = {
   message: {
     Sender: {
-      id: string;
       username: string;
       avatar: string;
-      Member: {
-        role: $Enums.MemberRole;
-      }[];
     };
     id: string;
     body: string | null;

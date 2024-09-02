@@ -1,48 +1,26 @@
 import { SheetContent, SheetHeader, Sheet } from "@/components/ui/sheet";
-import {
-  GitPullRequestIcon,
-  LogOutIcon,
-  MoonIcon,
-  Trash,
-  User,
-} from "lucide-react";
+import { MoonIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import GroupIcon from "./GroupIcon";
 import P from "@/components/ui/typo/P";
 import EditInput from "../../common/edit-input";
 import SettingsItem from "./settings-item";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/wrappers/theme-provider";
-import { useNavigate } from "react-router-dom";
 import DeleteModal from "@/components/modals/delete-modal";
 import GroupChatModal from "@/components/modals/groupchat-modal";
 import { useProfileStore } from "@/hooks/useProfile";
 import AvatarUser from "@/components/common/avatar-user";
-import { useAuth } from "@clerk/clerk-react";
-const data = [
-  {
-    text: "New Group chat",
-    icon: GroupIcon,
-  },
-  {
-    text: "Request Feature",
-    icon: GitPullRequestIcon,
-  },
-  {
-    text: "Logout",
-    icon: LogOutIcon,
-  },
-  {
-    text: "Delete Account",
-    icon: Trash,
-  },
-] as const;
+import { useMutate } from "@/hooks/query/useMutate";
+import { useQueryClient } from "@tanstack/react-query";
+import { settingsItemData } from "@/constants";
+import { useLogout } from "@/hooks/useLogout";
 
 function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
-  const { signOut } = useAuth();
-  const { profile, removeProfile } = useProfileStore();
+  const queryClient = useQueryClient();
+  const { profile, updateProfile: updateProfileStore } = useProfileStore();
+  const { handleLogout } = useLogout({ isHomePage: false });
   const { theme, setTheme } = useTheme();
   const username = useRef(profile?.username);
   const bio = useRef(profile?.bio);
@@ -54,18 +32,27 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
     groupChat: false,
     deleteAccount: false,
   });
+  const { mutate: deleteUser, isPending: isDeleting } = useMutate<undefined>({
+    method: "delete",
+    route: "/users",
+  });
+  const { mutate: updateProfile, isPending: isUpdating } = useMutate({
+    method: "patch",
+    route: "/users",
+    onSuccess() {
+      updateProfileStore({
+        username: values.username.slice(1),
+        bio: values.bio,
+      });
+      username.current = values.username.slice(1);
+      bio.current = values.bio;
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
   const displaySaveButton =
     username.current !== values.username.slice(1) || bio.current !== values.bio;
-  const navigate = useNavigate();
-  async function handleLogout() {
-    // handle clerk logout
-    await signOut();
-    removeProfile();
-    // remove profile from store.
-    // navigate to sign-in
-    navigate("/sign-in");
-  }
-  async function handleClick(item: (typeof data)[number]["text"]) {
+  const disableSaveButton = isUpdating || isDeleting;
+  async function handleClick(item: (typeof settingsItemData)[number]["text"]) {
     switch (item) {
       case "New Group chat":
         setModals((prevState) => ({
@@ -97,10 +84,15 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
     }));
   }
   async function handleSubmit(data: typeof values) {
-    // some zod validation
+    // some  validation
+    if (!data.username || !data.bio) return;
     // send to endpoint
-    // update profile store
+    data.username = data.username.slice(1);
+    updateProfile(data);
     console.log(data);
+  }
+  async function handleDelete() {
+    deleteUser();
   }
   function setModal(value: boolean) {
     setModals((prevState) => ({
@@ -111,7 +103,19 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
   return (
     <>
       <GroupChatModal open={modals.groupChat} setModal={setModal} />
-      <DeleteModal open={modals.deleteAccount} setModals={setModals} />
+      <DeleteModal
+        open={modals.deleteAccount}
+        deleteFn={handleDelete}
+        isPending={isDeleting}
+        onOpenChange={(value) => {
+          setModals((prevState) => ({
+            ...prevState,
+            deleteAccount: value,
+          }));
+        }}
+        title="Delete Account"
+        message="Are you sure you want to delete your account? This action cannot be undone."
+      />
       <Sheet open={isOpen} onOpenChange={(open) => openDrawer(open)}>
         <SheetContent side={"left"} className="p-0">
           <SheetHeader className="w-full py-2 h-14 px-6 text-center bg-brand-p1 dark:bg-[rgb(60,116,161)] text-gray-100 text-xl">
@@ -121,9 +125,10 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
             {displaySaveButton && (
               <Button
                 onClick={() => handleSubmit(values)}
+                disabled={disableSaveButton}
                 className="absolute top-5 right-5 font-semibold text-[15.5px] px-6 bg-brand-p2 text-white"
               >
-                Save
+                {isUpdating ? "Saving..." : "Save"}
               </Button>
             )}
             <div className="px-5 space-y-5 mt-8 border-b-2 mb-5 pb-3">
@@ -141,10 +146,9 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
               />
             </div>
             <div className="space-y-2 px-4 mt-10">
-              {data.slice(0, 2).map((item) => (
+              {settingsItemData.slice(0, 2).map((item) => (
                 <SettingsItem
                   text={item.text}
-                  //@ts-ignore
                   Icon={item.icon}
                   key={uuidv4()}
                   handleClick={handleClick}
@@ -170,7 +174,7 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
                 />
               </div>
               <div className="h-12"></div>
-              {data.slice(2, 4).map((item) => (
+              {settingsItemData.slice(2, 4).map((item) => (
                 <SettingsItem
                   text={item.text}
                   //@ts-ignore

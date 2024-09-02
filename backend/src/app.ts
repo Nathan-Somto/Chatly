@@ -90,9 +90,7 @@ io.on("connection", (socket) => {
   // for sending a message
   socket.on("sendMessage", async ({ chatInfo, message }: MessageEmit) => {
     // update the sender's online status.
-    console.log("info: ", JSON.stringify(chatInfo, null, 2));
-    console.log("message: ", JSON.stringify(message, null, 2));
-    await updateOnlineStatus(message.Sender.id);
+    await updateOnlineStatus(message.senderId);
     // use this to update both the chat list page and chat page.
     io.to(chatInfo.id).emit("newMessage", {
       chatInfo,
@@ -101,8 +99,7 @@ io.on("connection", (socket) => {
   });
   // for updating a message
   socket.on("updateMessage", async ({ chatInfo, message }: MessageEmit) => {
-    // update the sender's online status.
-    await updateOnlineStatus(message.Sender.id);
+    await updateOnlineStatus(message.senderId);
     // send the usual info (if it is in the ui of the frontend it is updated)
     io.to(chatInfo.id).emit("messageUpdated", {
       chatInfo,
@@ -118,6 +115,12 @@ io.on("connection", (socket) => {
       prevMessage,
       userId,
     }: MessageDeleteEmit) => {
+      console.log(
+        "delete message emit: ",
+        chatId,
+        JSON.stringify(prevMessage, null, 2),
+        deletedMessageId
+      );
       // update the sender's online status.
       await updateOnlineStatus(userId);
       io.to(chatId).emit("messageDeleted", {

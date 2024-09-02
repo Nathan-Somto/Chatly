@@ -3,37 +3,55 @@ import { useAuth } from "@clerk/clerk-react";
 import React from "react";
 
 export function useGetToken() {
-  const { getToken,isSignedIn } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const [token, setToken] = React.useState<string | null>(null);
+
   async function refetchToken() {
-    console.log("refetching...")
-    const gottenToken = await getToken();
-    console.log("gotten token", gottenToken)
+    console.log("refetching...");
+    const gottenToken = await getToken({
+      template: "auth-token",
+    });
     setToken(gottenToken);
   }
+
   React.useEffect(() => {
     let isMounted = true;
-    let interval: NodeJS.Timeout;
+
     async function fetchToken() {
-      const gottenToken = await getToken();
+      const gottenToken = await getToken({
+        template: "auth-token",
+      });
+      console.log("gottenToken: ", gottenToken);
       if (isMounted) {
         setToken(gottenToken);
       }
     }
 
-    fetchToken();
-    if(isSignedIn){
-       interval = setInterval(() => {
-        fetchToken();
-        console.log("fetching token...")
-      }, TOKEN_REFRESH_TIME);
+   async function checkTokenExpiry() {
+      const firstUseDateStr = localStorage.getItem("firstUseDate");
+      const now = new Date().getTime();
+
+      if (firstUseDateStr) {
+        const firstUseDate = new Date(firstUseDateStr).getTime();
+        const timeDiff = now - firstUseDate;
+
+        if (timeDiff > TOKEN_REFRESH_TIME * 1000) {
+          await refetchToken();
+          console.log("fetching token after expiry time...");
+          localStorage.setItem("firstUseDate", new Date().toISOString());
+        }
+      } 
+    }
+   
+      fetchToken();
+    if (isSignedIn) {
+      checkTokenExpiry();
     }
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
     };
-  }, [getToken, isSignedIn]);
+  }, [getToken,isSignedIn]);
 
   return { token, refetchToken };
 }

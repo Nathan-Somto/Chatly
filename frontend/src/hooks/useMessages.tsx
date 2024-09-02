@@ -1,10 +1,10 @@
 import { create } from "zustand";
-export type ModifiedMessage = Message["message"]& 
+export type ModifiedMessage = Message & 
 {
     sending?:boolean; 
     failed?:boolean;
 }
-type Messages = ModifiedMessage[];
+export type Messages = ModifiedMessage[];
 interface MessagesState {
   messages: Messages | null;
   setMessages: (data: Messages | null) => void;

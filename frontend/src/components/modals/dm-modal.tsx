@@ -1,13 +1,12 @@
-import { MoreHorizontalIcon, SearchIcon, UserPlus2Icon } from "lucide-react";
+import { MoreHorizontalIcon, RefreshCcw, SearchIcon, UserPlus2Icon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader } from "../ui/dialog";
 import H2 from "../ui/typo/H2";
 import { Button } from "../ui/button";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import UserBox, { sampleUserBoxData } from "../common/user-box";
+import UserGroupBox from "../common/user-group-box";
 import P from "../ui/typo/P";
-
-
+import Search from "@/services/search";
 type Props = {
   open: boolean;
   setModal: (value: boolean, isGroup: boolean) => void;
@@ -16,27 +15,21 @@ type Props = {
 
 export function DmModal({ open, setModal, toggleLoading }: Props) {
   const [keywords, setKeywords] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<UserBox[] | null>(null);
   const debouncedValue = useDebounce(keywords, 500);
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout | undefined;
-    function fetchUsers(value: string) {
-      setLoading(true);
-      timeoutId = setTimeout(() => {
-        setUsers(
-          sampleUserBoxData.filter((user) => user.username.includes(value))
-        );
-        setLoading(false);
-      }, 2500);
-    }
-    if (debouncedValue) {
-      fetchUsers(debouncedValue);
-    }
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [debouncedValue]);
+  console.log(keywords.length > 0)
+  const {
+    searchData,
+    isError,
+    isLoading:loading
+  } = Search({
+    keyword: debouncedValue,
+    usersOnly: true,
+    enabled: keywords.length > 0 && debouncedValue.length > 0,
+  });
+  console.log("loading:", loading)
+  const users = useMemo(() => {
+    return searchData?.data ? searchData.data.users : null;
+  }, [searchData?.data]);
   return (
     <Dialog open={open} onOpenChange={(open) => setModal(open, false)}>
       <DialogContent className="h-[450px] block gap-0 overflow-auto  pb-5">
@@ -64,11 +57,7 @@ export function DmModal({ open, setModal, toggleLoading }: Props) {
             />
           </label>
         </form>
-        <div
-          className={
-            "px-5 py-0 min-h-[200px] flex items-center flex-col"
-          }
-        >
+        <div className={"px-5 py-0 min-h-[200px] flex items-center flex-col"}>
           {loading ? (
             <P className="opacity-80 text-neutral-500 leading-snug tracking-wide flex items-center gap-x-1">
               Finding users{" "}
@@ -77,9 +66,16 @@ export function DmModal({ open, setModal, toggleLoading }: Props) {
               </span>
             </P>
           ) : users === null ? (
-            <P className="font-medium opacity-80 mx-auto w-full ">
-              Type the names of your friends or family and start a chat now!
-            </P>
+            isError ? (
+              <div className="flex flex-col justify-start mt-2 w-full flex-shrink-0">
+                <P className="mb-2 text-lg font-medium">Something went wrong!</P>
+                <Button className="max-w-fit gap-x-1.5">Retry <RefreshCcw size={16}/></Button>
+              </div>
+            ) : (
+              <P className="font-medium opacity-80 mx-auto w-full ">
+                Type the names of your friends or family and start a chat now!
+              </P>
+            )
           ) : users.length === 0 ? (
             <P>
               No Users fits this search term{" "}
@@ -87,7 +83,8 @@ export function DmModal({ open, setModal, toggleLoading }: Props) {
             </P>
           ) : (
             users.map((user) => (
-              <UserBox
+              <UserGroupBox
+                type="user"
                 avatar={user.avatar}
                 id={user.id}
                 key={user.id}

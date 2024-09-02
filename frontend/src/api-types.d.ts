@@ -1,12 +1,11 @@
+import { string } from "zod";
 import { ChatBoxType, PrivacyType } from "./components/chats";
 
 /** Response Types **/
-type PaginatedResponse<K extends string, T> = {
+type PaginatedResponse<K extends string,T> = {
   [index in K]: T[];
 } & {
-  totalSize: number;
-  page: number;
-  pageSize: number;
+  nextCursor: string | null;
 };
 export type GetUserResponse = {
   user: {
@@ -56,7 +55,7 @@ export type GroupChatResponse = {
 };
 export type GetMessagesResponse = PaginatedResponse<
   "messages",
-  Message["message"]
+  Message
 >;
 export type SearchDataResponse = {
   users: UserBox[],

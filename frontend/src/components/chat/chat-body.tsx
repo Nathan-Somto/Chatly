@@ -7,29 +7,25 @@ import { v4 as uuidv4 } from "uuid";
 import { useEffect, useRef, useState } from "react";
 import MediaViewModal from "../modals/media-viewer-modal";
 import useSocketStore from "@/hooks/useSocket";
-import {
-  GetMessagesResponse,
-  MessageDeleteEmit,
-  MessageEmit,
-} from "@/api-types";
+import { GetMessagesResponse, MessageDeleteEmit } from "@/api-types";
 import Message from "./message";
 import { useGetQuery } from "@/hooks/query/useGetQuery";
 import { useParams } from "react-router-dom";
 import Loader from "../ui/loader";
-import { useActiveChat } from "@/hooks/useActiveChat";
 import { useMessageOptions } from "@/hooks/useMessageOptions";
 import DeleteModal from "../modals/delete-modal";
 import { useScrollTo } from "@/hooks/useScrollTo";
 import { useMutate } from "@/hooks/query/useMutate";
 import { useProfileStore } from "@/hooks/useProfile";
+import { useChatBodyListeners } from "@/hooks/listeners/useChatBodyListeners";
+import useInfiniteQuery from "@/hooks/query/useInfiniteQuery";
 
 function ChatBody() {
   const [openImgModal, setOpenImgModal] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
   const { theme } = useTheme();
   const { chatId } = useParams<{ chatId: string }>();
-  const { messages, addMessage, setMessages } = useMessages();
-  const { activeChat } = useActiveChat();
+  const { messages, setMessages } = useMessages();
   const { socket } = useSocketStore();
   const removedMessage = useRef<ModifiedMessage | null>(null);
   const { profile } = useProfileStore();
@@ -44,8 +40,7 @@ function ChatBody() {
   const {
     data: response,
     isPending: isFetching,
-    refetch,
-  } = useGetQuery<GetMessagesResponse>({
+  } = useInfiniteQuery<'messages', Message>({
     enabled: true,
     route: `/chats/${chatId}/messages`,
     queryKey: ["messages", chatId],
@@ -65,10 +60,7 @@ function ChatBody() {
       defaultMessage: "Failed to delete message",
       displayToast: false,
     });
-  function onDeleteSuccess(
-    messagesCopy: Message["message"][],
-    prevIndex: number
-  ) {
+  function onDeleteSuccess(messagesCopy: Message[], prevIndex: number) {
     console.log(
       "messages copy and prevIndex in delete error",
       messagesCopy,
@@ -93,10 +85,7 @@ function ChatBody() {
     resetOptions();
     removedMessage.current = null;
   }
-  function onDeleteError(
-    messagesCopy: Message["message"][],
-    prevIndex: number
-  ) {
+  function onDeleteError(messagesCopy: Message[], prevIndex: number) {
     console.log(
       "messages copy and prevIndex in delete error",
       messagesCopy,
@@ -109,91 +98,19 @@ function ChatBody() {
     resetOptions();
     removedMessage.current = null;
   }
-  // Clear messages when activeChat changes
-  /*  useEffect(() => {
-    setMessages(null);
-    if (activeChat?.dmInfo || activeChat?.groupInfo) {
-      refetch();
-    }
-  }, [chatId]); */
   // get the messages from the server
   useEffect(() => {
-    const data = response?.data;
-    if (data) {
-      setMessages(data.messages);
+    if(response?.pages && response?.pages?.length){
+      const data = response?.pages[0]?.data;
+      // add the new messages to the store
+      console.log("data in chat body: ", data);
+      if (data) {
+        setMessages(data.messages);
+      }
     }
   }, [response, chatId]);
   // attach a socket io listener for new messages
-  useEffect(() => {
-    if (socket) {
-      // helper function that return a boolean ifwe should add the Message
-      const includeMessage = (
-        messageId: string,
-        chatId: string,
-        checkFound = true
-      ) => {
-        let found;
-        if (checkFound) {
-          found = messages?.find((item) => item.id === messageId);
-        }
-        // if the chat info of the new message does not match the active chat id don't add it to the state
-        const isDmChat = activeChat?.dmInfo?.id === chatId;
-        const isGroupChat = activeChat?.groupInfo?.id === chatId;
-
-        if (!(isDmChat || isGroupChat)) {
-          return false;
-        }
-        if (checkFound) {
-          if (found) {
-            return false;
-          }
-        }
-        return true;
-      };
-      const handleNewMessage = (data: MessageEmit) => {
-        console.log("handle new  message: ", data);
-        if (!includeMessage(data.message.id, data.chatInfo.id)) return;
-        addMessage(data.message);
-      };
-      const handleUpdateMessage = (data: MessageEmit) => {
-        console.log("update message: ", data);
-        if (!includeMessage(data.message.id, data.chatInfo.id, false)) return;
-        const foundMessage = messages?.find(
-          (item) => item.id === data.message.id
-        );
-        if (foundMessage) {
-          const updatedMessages =
-            messages?.map((item) => {
-              if (item.id === data.message.id) {
-                return data.message;
-              }
-              return item;
-            }) ?? null;
-          setMessages(updatedMessages);
-        }
-      };
-      const handleDeleteMessage = (data: MessageDeleteEmit) => {
-        if (!includeMessage(data.deletedMessageId, data.chatId, false)) return;
-        const foundMessage = messages?.find(
-          (item) => item.id === data.deletedMessageId
-        );
-        if (foundMessage) {
-          const messageCopy =
-            messages?.filter((item) => item.id !== data.deletedMessageId) ??
-            null;
-          setMessages(messageCopy);
-        }
-      };
-      socket?.on("messageDeleted", handleDeleteMessage);
-      socket?.on("messageUpdated", handleUpdateMessage);
-      socket?.on("newMessage", handleNewMessage);
-      return () => {
-        socket.off("newMessage", handleNewMessage);
-        socket.off("messageUpdated", handleUpdateMessage);
-        socket.off("messageDeleted", handleDeleteMessage);
-      };
-    }
-  }, [socket, chatId]);
+  useChatBodyListeners();
   async function handleDelete() {
     toggleDisabled(true);
     const messageCopy = messages?.slice() ?? [];
@@ -259,7 +176,7 @@ function ChatBody() {
             } else {
               return (
                 <Message
-                  message={item}
+                  {...item}
                   sending={item?.sending}
                   failed={item?.failed}
                   openModal={openImageModal}

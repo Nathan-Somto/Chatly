@@ -181,7 +181,8 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
             body: null,
             type:'TEXT',
             readByIds:[],
-            senderId: null
+            senderId: null,
+            id: ''
         },
         avatars: members.map((member) => member.user.avatar),
         members: members.map(member => member.user.username),

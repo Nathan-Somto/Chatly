@@ -1,6 +1,7 @@
 import React from "react";
 import { ThemeProvider } from "@/components/wrappers/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +14,7 @@ const queryClient = new QueryClient({
       retry: (failureCount, _error) => failureCount === 3,
       refetchOnWindowFocus: false,
       staleTime: 10 * 60 * 1000,
+
     },
   },
 });
@@ -38,6 +40,7 @@ function providers({ children }: TProvidersProps) {
           <>
             {children}
             <Toaster position="top-right" />
+            <ReactQueryDevtools initialIsOpen={false} />
           </>
         </ThemeProvider>
       </QueryClientProvider>

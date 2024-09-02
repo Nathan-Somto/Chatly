@@ -41,7 +41,7 @@ function SidebarHeader({
   const [openGroupModal, setOpenGroupModal] = useState(false);
   const [openDmModal, setOpenDmModal] = useState(false);
   const navigate = useNavigate();
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>) {
     e.preventDefault();
     handleSearch(keywords);
   }
@@ -84,6 +84,7 @@ function SidebarHeader({
           <label className="w-full  relative  ">
             <Button
               variant={"ghost"}
+              type='button'
               className="absolute left-0 top-0 ml-2 bottom-0 my-auto h-fit w-fit mr-4 p-0 text-gray-500 hover:bg-transparent hover:text-gray-500"
             >
               <SearchIcon size={16} />
@@ -95,6 +96,11 @@ function SidebarHeader({
               placeholder="Search for users or groups"
               onChange={(e) => setKeywords(e.target.value)}
               value={keywords}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSubmit(e);
+                }
+              }}
               className="w-full py-2 pl-9 pr-4 h-10 dark:bg-gray-50 placeholder-gray-400  text-gray-600 border border-gray-300 focus:border-transparent rounded-3xl outline-none focus:ring-brand-p2 focus:ring-2"
             />
           </label>

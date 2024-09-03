@@ -31,7 +31,7 @@ type MessageEmit = {
     id: string;
     isGroup: boolean;
     name: string | null;
-    avatars: string[];
+    avatarUrl?: string | null;
     lastSeen?: Date;
     members?: string[];
     description?: string | null;

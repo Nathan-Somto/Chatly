@@ -1,6 +1,7 @@
 import { string } from "zod";
 import { ChatBoxType, PrivacyType } from "./components/chats";
 
+export type WallpaperType = "DEFAULT" | "UPLOADED" | "COLOR";
 /** Response Types **/
 type PaginatedResponse<K extends string,T> = {
   [index in K]: T[];
@@ -16,6 +17,8 @@ export type GetUserResponse = {
     isOnboarded: boolean;
     avatar: string;
     bio: string;
+    wallpaperUrl?: string;
+    wallpaperType?: WallpaperType;
   };
 };
 export type GetMembersInfoResponse = {
@@ -44,7 +47,7 @@ export type CreateDmChatResponse = {
 };
 export type GroupChatResponse = {
   groupChat: {
-    avatars: string[];
+    imageUrl: string;
     members: string[];
     id: string;
     name?: string | null;

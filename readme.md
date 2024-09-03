@@ -12,12 +12,11 @@ Preview the Figma design I used [here](https://www.figma.com/design/jZ69GqMP9gfz
 1. Private 1-1 messaging 🗣️
 2. Group Chats 👥
 3. Live Video Chats 📹
-4. Real-Time Notifications 🔔
-5. Real-Time Messaging / Updates 💬
-6. Image, Video / Audio Uploads 📷🎥🎵
-7. Light or Dark Mode 🌞🌜
-8. Custom Chat Wallpapers 🖼️
-9. Discover Users 🔍
+4. Real-Time Messaging / Updates 💬
+5. Image, Video / Audio Uploads 📷🎥🎵
+6. Light or Dark Mode 🌞🌜
+7. Custom Chat Wallpapers 🖼️
+8. Discover Users 🔍
 
 ### Interface Preview
 ![interface-preview](./screenshots/interface-preview.png)

@@ -6,6 +6,8 @@ import AuthLayout from "./components/layout/auth-layout";
 import { Suspense,lazy } from "react";
 import Loader from "./components/ui/loader";
 import Home from "@/pages/Home";
+import Wallpaper from "./pages/Wallpaper";
+import VideoChat from "./pages/VideoChat";
 const SignIn =  lazy(() => import('./pages/SignIn'));;
 const  SignUp =  lazy(() => import('./pages/SignUp'));
 const  Chats =  lazy(() => import('./pages/Chats'));
@@ -30,9 +32,13 @@ function App() {
           <Route path="/onboarding/*" element={<Onboarding/>} />
           <Route path="/chats-redirect/*" element={<ChatsRedirect/>}/>
           <Route path="/discover" element={<Discover/>}/>
+          <Route path="/:userId/wallpaper" element={<Wallpaper/>} />
           <Route path="/:userId/chats" element={<ChatsLayout/>}>
             <Route  index element={<Chats/>} />
-            <Route path=":chatId" element={<Chat/>}/>
+            <Route path=":chatId">
+              <Route index element={<Chat/>}/>
+              <Route path="video-chat" element={<VideoChat/>}/>
+            </Route>
           </Route>
           <Route path="/invite-link/:chatId/:inviteCode" element={<InviteRedirect/>}/>
           </Route>

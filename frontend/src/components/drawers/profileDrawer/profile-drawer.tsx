@@ -22,7 +22,7 @@ function ProfileDrawer({ isOpen, openDrawer }: DrawerProps) {
           <GroupChatContents
             name={activeChat.groupInfo?.name ?? "No name"}
             description={activeChat.groupInfo?.description ?? "No description"}
-            avatars={activeChat.groupInfo.avatars}
+            imageUrl={activeChat.groupInfo.imageUrl ?? null}
             privacyType={activeChat.groupInfo?.privacy ?? void 0}
             inviteCode={activeChat.groupInfo?.inviteCode ?? "No invite code"}
             closeDrawer={closeDrawer}
@@ -30,7 +30,7 @@ function ProfileDrawer({ isOpen, openDrawer }: DrawerProps) {
         ) : activeChat?.dmInfo ? (
           <DmContents
             username={activeChat.dmInfo.username}
-            avatar={activeChat.dmInfo.avatar}
+            avatar={activeChat.dmInfo.avatarUrl}
             lastSeen={activeChat.dmInfo?.lastSeen ?? new Date()}
             bio={activeChat.dmInfo?.bio ?? "No bio"}
             email={activeChat.dmInfo?.email ?? "No email"}

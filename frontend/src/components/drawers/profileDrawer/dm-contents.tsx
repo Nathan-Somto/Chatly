@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import H3 from "@/components/ui/typo/H3";
 import P from "@/components/ui/typo/P";
+import { useActiveChat } from "@/hooks/useActiveChat";
+import { useProfileStore } from "@/hooks/useProfile";
 import { cn, formatLastSeen } from "@/lib/utils";
-import { SlashIcon, Trash2Icon } from "lucide-react";
+import { PhoneIcon, SlashIcon, Trash2Icon, VideoIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 type Props = {
   id: string;
   username: string;
@@ -19,6 +22,9 @@ export default function DmContents({
   lastSeen,
   bio,
 }: Props) {
+  const { profile } = useProfileStore();
+  const { dmInfo } = useActiveChat((state) => state.activeChat);
+  const navigate = useNavigate();
   const { lastSeen: formattedLastSeen, isOnline } = formatLastSeen(
     lastSeen ?? new Date()
   );
@@ -32,7 +38,7 @@ export default function DmContents({
             className="h-24 w-24 rounded-full object-cover border-2 border-slate-500  dark:border-slate-700"
           />
           <div>
-            <H3 >{username}</H3>
+            <H3>{username}</H3>
             <P
               className={cn(
                 "text-sm font-light opacity-80",
@@ -59,6 +65,15 @@ export default function DmContents({
           {" "}
           <SlashIcon className="mr-2" />
           Block user
+        </Button>
+        <Button
+          onClick={() => navigate(`/${profile?.id}/chats/${dmInfo?.id}/video-chat`)}
+          variant={"outline"}
+          className="w-full justify-start mt-3"
+        >
+          {" "}
+          <VideoIcon className="mr-2" />
+          Video Chat
         </Button>
         <Button
           variant={"outline"}

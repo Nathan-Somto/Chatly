@@ -36,7 +36,7 @@ const getChatMessages = async (
         skip: 1,
         where: q,
         orderBy: {
-          createdAt: "asc"
+          createdAt: "desc"
         },
         select: {
           isEditted: true,
@@ -73,7 +73,7 @@ const getChatMessages = async (
         take: 10,
         where: q,
         orderBy: {
-          createdAt: "asc"
+          createdAt: "desc"
         },
         select: {
           isEditted: true,
@@ -117,9 +117,8 @@ const getChatMessages = async (
           }
         : null,
     }));
-    console.log(JSON.stringify(formattedMessages, null, 2));
     let nextCursor = null;
-    if(cursor && formattedMessages?.length === 10){
+    if(formattedMessages?.length === 10){
       nextCursor = formattedMessages[formattedMessages?.length - 1].id;
     }
     res.status(200).json({
@@ -181,6 +180,8 @@ const getGroupChatMembers = async (
     }
     const formattedMembers = chatMembers.members.map((member) => ({
       ...member.user,
+      avatar: undefined,
+      avatarUrl: member.user.avatar,
       role: member.role,
     }));
     res.status(200).json({
@@ -207,7 +208,6 @@ const createGroupChat = async (
   try {
     const { name, description, members, privacy, ownerName, ownerId } =
       req.body;
-    const clerkId = req.auth.userId;
     if (Array.isArray(members) && members.length >= 2) {
       const isValidMembers = members.every(
         (item) =>
@@ -249,7 +249,6 @@ const createGroupChat = async (
             select: {
               user: {
                 select: {
-                  avatar: true,
                   username: true,
                 },
               },
@@ -263,7 +262,6 @@ const createGroupChat = async (
         message: `${ownerName} created a group chat!`,
       });
       const formattedGroupChat = formatGroupchatResponse(groupChat);
-      console.log(JSON.stringify(formattedGroupChat, null, 2));
       res.status(201).json({
         message: "successfully created group chat!",
         groupChat: formattedGroupChat,
@@ -516,7 +514,6 @@ const joinViaLink = async (req: Request, res: Response, next: NextFunction) => {
             user: {
               select: {
                 username: true,
-                avatar: true,
               },
             },
           },
@@ -608,7 +605,6 @@ const joinPublicGroupChat = async (
             user: {
               select: {
                 username: true,
-                avatar: true,
               },
             },
           },
@@ -646,7 +642,7 @@ const editGroupChat = async (
   try {
     const clerkId = req.auth.userId;
     const { chatId } = req.params;
-    const { name, description, privacy } = req.body;
+    const { name, description, privacy, imageUrl } = req.body;
     const user = await prisma.user.findUnique({
       where: {
         clerkId,
@@ -673,11 +669,13 @@ const editGroupChat = async (
           description: true,
           name: true,
           privacy: true,
+          imageUrl: true
         },
       });
-      const updatedName = name || groupChat?.name;
-      const updatedDescription = description || groupChat?.description;
-      const updatedPrivacy = privacy || groupChat?.privacy;
+      const updatedName = name || groupChat?.name || null;
+      const updatedDescription = description || groupChat?.description || null;
+      const updatedPrivacy = privacy || groupChat?.privacy || null;
+      const updatedImageUrl = imageUrl || groupChat?.imageUrl || null;
       const updatedGroupChat = await prisma.chat.update({
         where: {
           id: chatId,
@@ -687,6 +685,7 @@ const editGroupChat = async (
           name: updatedName,
           description: updatedDescription,
           privacy: updatedPrivacy,
+          imageUrl: updatedImageUrl
         },
         include: {
           members: {
@@ -695,7 +694,6 @@ const editGroupChat = async (
               user: {
                 select: {
                   username: true,
-                  avatar: true,
                 },
               },
             },

@@ -6,17 +6,13 @@ import clerkClient from "@clerk/clerk-sdk-node";
  * @description gets a given user profile
  * @route /api/v1/users/profile
  */
-const getProfile = async (req: Request, res: Response, next:NextFunction) => {
+const getProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    //const { userId } = req.params;
-    console.log("executing")
     const clerkId = req.auth.userId;
-    console.log("clerkId", clerkId);
     const foundUser = await prisma.user.findUnique({
       where: {
-        clerkId
+        clerkId,
       },
-
       select: {
         username: true,
         email: true,
@@ -25,19 +21,21 @@ const getProfile = async (req: Request, res: Response, next:NextFunction) => {
         avatar: true,
         clerkId: true,
         id: true,
+        wallpaperType: true,
+        wallpaperUrl: true,
       },
     });
     if (!foundUser) {
       return res.status(200).json({
         message: "profile does not exist",
         success: false,
-        user: null
-      });     
+        user: null,
+      });
     }
     if (foundUser.clerkId !== clerkId) {
       res.status(400).json({
         message: "cannot access another user's profile",
-        success: false
+        success: false,
       });
       return;
     }
@@ -55,48 +53,51 @@ const getProfile = async (req: Request, res: Response, next:NextFunction) => {
  * @description gets user's in the db! apart from logged in use
  * @route /api/v1/users?memberInfo=true
  */
-const getUsers = async(req:Request, res:Response, next:NextFunction) => {
-  try{
+const getUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
     const clerkId = req.auth.userId;
-    const {memberInfo} = req.query;
+    const { memberInfo } = req.query;
     const users = await prisma.user.findMany({
-      where : {
-        NOT : {
-          clerkId
-        }
+      where: {
+        NOT: {
+          clerkId,
+        },
       },
       select: {
         username: true,
         id: true,
         lastSeen: true,
         avatar: true,
-      }
+      },
     });
     let formattedMemberInfo;
-    if(memberInfo) {
+    if (memberInfo) {
       formattedMemberInfo = users.map((user) => {
         return {
           username: user.username,
-          id: user.id
-        }
-      })
+          id: user.id,
+        };
+      });
     }
-   return res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "succesfully retrieved users",
-      users: memberInfo ? formattedMemberInfo : users
-    })
-  }
-  catch(err){
+      users: memberInfo ? formattedMemberInfo : users,
+    });
+  } catch (err) {
     next(err);
   }
-}
+};
 /**
  * @method GET
  * @description get all the chats for a given user where only the first message is populated.
  * @route /api/v1/users/:userId/chats
  */
-const getUserChats = async (req: Request, res: Response, next: NextFunction) => {
+const getUserChats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const clerkId = req.auth.userId;
     const user = await prisma.user.findUnique({
@@ -113,7 +114,7 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
       });
     }
     const userId = user.id;
-   const chats = await prisma.chat.findMany({
+    const chats = await prisma.chat.findMany({
       where: {
         members: {
           some: {
@@ -128,19 +129,20 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
         description: true,
         inviteCode: true,
         privacy: true,
+        imageUrl: true,
         members: {
-          take: 3,
+          take: 2,
           select: {
             user: {
-              select:{
+              select: {
                 avatar: true,
                 username: true,
                 lastSeen: true,
                 id: true,
                 bio: true,
-                email: true
-              }
-            }
+                email: true,
+              },
+            },
           },
         },
         message: {
@@ -157,42 +159,43 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
             senderId: true,
           },
         },
-      }
+      },
     });
     // if it is not a group chat get the member and username avatras that do not belong to the requesting user
     const formattedChats = chats.map((chat) => {
       let members = chat.members;
       let name = chat.name;
       let lastSeen = new Date();
-      let email,bio;
-      if(!chat.isGroup){
+      let email, bio;
+      if (!chat.isGroup) {
         members = chat.members.filter((member) => member.user.id !== userId);
         name = members.length > 0 ? members[0].user.username : "Chatly User";
         lastSeen = members[0].user.lastSeen;
         email = members[0].user.email;
         bio = members[0].user.bio;
       }
-    return  {
+      return {
+        avatarUrl: members.length > 0 ? members[0].user.avatar : null,
         id: chat.id,
         isGroup: chat.isGroup,
         name,
-        message: chat.message[0] ?? { 
-            createdAt: new Date(),
-            body: null,
-            type:'TEXT',
-            readByIds:[],
-            senderId: null,
-            id: ''
+        message: chat.message[0] ?? {
+          createdAt: new Date(),
+          body: null,
+          type: "TEXT",
+          readByIds: [],
+          senderId: null,
+          id: "",
         },
-        avatars: members.map((member) => member.user.avatar),
-        members: members.map(member => member.user.username),
+        imageUrl: chat?.imageUrl ?? null,
+        members: members.map((member) => member.user.username),
         lastSeen,
         email,
         bio,
         inviteCode: chat?.inviteCode ?? null,
         description: chat.description,
-        privacy: chat.privacy
-      };    
+        privacy: chat.privacy,
+      };
     });
     return res.status(200).json({
       success: true,
@@ -212,17 +215,8 @@ const getUserChats = async (req: Request, res: Response, next: NextFunction) => 
  */
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { username, email, bio, avatar} = req.body;
+    const { username, email, bio, avatar, theme = "light" } = req.body;
     const clerkId = req.auth.userId;
-    console.log(JSON.stringify({
-      username,
-      email,
-      bio,
-      isOnboarded: true,
-      avatar,
-      clerkId,
-    }))
-   
     const isUsernameTaken = await prisma.user.findUnique({
       where: {
         username,
@@ -244,6 +238,8 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         isOnboarded: true,
         avatar: avatar ?? null,
         clerkId,
+        wallpaperType: "DEFAULT",
+        wallpaperUrl: theme === "light" ? "light1" : "dark1",
       },
       select: {
         username: true,
@@ -252,7 +248,9 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         isOnboarded: true,
         avatar: true,
         clerkId: true,
-        id:true
+        id: true,
+        wallpaperType: true,
+        wallpaperUrl: true,
       },
     });
     res.status(201).json({
@@ -261,7 +259,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
       user: createdUser,
     });
   } catch (err) {
-   next(err)
+    next(err);
   }
 };
 /**
@@ -271,12 +269,16 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
  * @param req
  * @param res
  */
-const updateProfile = async (req: Request, res: Response, next:NextFunction) => {
+const updateProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    console.log("executing route handler!")
+    console.log("executing route handler!");
     const clerkId = req.auth.userId;
-    const { username, bio, avatar } = req.body;
-    console.log(JSON.stringify(req.body))
+    const { username, bio, avatar, wallpaperType, wallpaperUrl } = req.body;
+    console.log(JSON.stringify(req.body));
     const foundUser = await prisma.user.findUnique({
       where: {
         clerkId,
@@ -286,69 +288,79 @@ const updateProfile = async (req: Request, res: Response, next:NextFunction) => 
         bio: true,
         avatar: true,
         clerkId: true,
+        wallpaperType: true,
+        wallpaperUrl: true,
       },
     });
     if (!foundUser) {
-      
       return res.status(404).json({
         message: "user not found!",
-        success: false
+        success: false,
       });
     }
     if (foundUser.clerkId !== clerkId) {
-     return res.status(400).json({
+      return res.status(400).json({
         message: "cannot update another user's profile!",
-        success: false
+        success: false,
       });
-     
     }
     const updatedUsername = username || foundUser.username;
     const updatedBio = bio || foundUser.bio;
     const updatedAvatar = avatar || foundUser.avatar;
-  const updatedProfile =  await prisma.user.update({
+    const updatedWallpaperType = wallpaperType || foundUser.wallpaperType;
+    const updatedWallpaperUrl = wallpaperUrl || foundUser.wallpaperUrl;
+    const updatedProfile = await prisma.user.update({
       where: {
-        clerkId
+        clerkId,
       },
       data: {
         avatar: updatedAvatar,
         username: updatedUsername,
         bio: updatedBio,
-        isOnboarded: true
+        isOnboarded: true,
+        wallpaperType: updatedWallpaperType,
+        wallpaperUrl: updatedWallpaperUrl,
       },
     });
     return res.status(200).json({
       message: "succesfully updated user's profile",
       user: updatedProfile,
-      success: true
-    })
+      success: true,
+    });
   } catch (err) {
     next(err);
   }
 };
 /**
  * @method DELETE
- * @param req 
+ * @param req
  * @param res
  * @description deletes a the logged in users account!
- * @route /api/v1/users 
+ * @route /api/v1/users
  */
-const deleteUser = async(req: Request, res: Response, next: NextFunction) => {
+const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const clerkId = req.auth.userId;
     await prisma.user.delete({
-      where : {
-        clerkId
-      }
+      where: {
+        clerkId,
+      },
     });
     await clerkClient.users.deleteUser(clerkId);
     return res.status(200).json({
       message: "succesfully deleted user",
       success: true,
-      user: null
-    })
+      user: null,
+    });
+  } catch (err) {
+    next(err);
   }
-  catch(err){
-  next(err)
-  }
-}
-export { getProfile, getUserChats, createUser, updateProfile,getUsers, deleteUser };
+};
+export {
+  getProfile,
+  getUserChats,
+  createUser,
+  updateProfile,
+  getUsers,
+  deleteUser,
+};

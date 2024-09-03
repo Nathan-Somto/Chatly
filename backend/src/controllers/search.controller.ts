@@ -60,7 +60,7 @@ const search = async (req: Request, res: Response, next: NextFunction) => {
           description: true,
           isGroup: true,
           members: {
-            take: 3,
+            take: 2,
             select: {
               user: {
                 select: {

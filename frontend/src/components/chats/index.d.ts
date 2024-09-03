@@ -13,7 +13,6 @@ type ChatBoxType =
         isGroup: boolean;
         name: string | null;
         message: ChatBoxMessageType;
-        avatars: string[];
         lastSeen?: Date;
         members?:string[];
         description?:string | null;
@@ -21,7 +20,8 @@ type ChatBoxType =
         bio?:string | null;
         inviteCode?: string | null;
         privacy?: PrivacyType | null;
-        imageUrl?: string | null;
+        avatarUrl: string; // for the other user
+        imageUrl?: string | null; // for the group chat
     }
 type SearchDataType = (UserBox | (GroupBox & {isGroup: boolean}))[]
 export{type ChatBoxType, PrivacyType, SearchDataType, ChatBoxMessageType}

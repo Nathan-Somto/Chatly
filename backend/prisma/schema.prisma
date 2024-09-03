@@ -11,16 +11,16 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  username      String    @unique
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  username      String         @unique
   email         String
-  clerkId       String    @unique // clerkId is a unique identifier for the user
-  isOnboarded   Boolean   @default(false)
+  clerkId       String         @unique // clerkId is a unique identifier for the user
+  isOnboarded   Boolean        @default(false)
   avatar        String
-  wallpaperUrl  String?   // URL of the user's wallpaper e.g. https://example.com/wallpaper.jpg or /wallpaper
-  wallpaperType WallpaperType?  // Type of wallpaper (default or user-uploaded)
-  createdAt     DateTime  @default(now())
-  lastSeen      DateTime  @default(now())
+  wallpaperUrl  String? // URL of the user's wallpaper e.g. https://example.com/wallpaper.jpg, /wallpaper, #3efef
+  wallpaperType WallpaperType? // Type of wallpaper (default or user-uploaded or color)
+  createdAt     DateTime       @default(now())
+  lastSeen      DateTime       @default(now())
   bio           String?
   Member        Member[]
   Message       Message[]
@@ -30,6 +30,7 @@ model User {
 enum WallpaperType {
   DEFAULT
   UPLOADED
+  COLOR
 }
 
 model Member {
@@ -68,7 +69,7 @@ model Chat {
   message     Message[]
   members     Member[]
   isGroup     Boolean      @default(false)
-  inviteCode  String?       
+  inviteCode  String?
   name        String?
   description String?
   imageUrl    String?

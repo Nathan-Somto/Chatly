@@ -8,20 +8,17 @@ interface GroupChat {
     imageUrl: string | null;
 }
 interface GroupChatResponse extends GroupChat {
-    avatars: string[];
     members: string[];
 }
 interface GroupChatPayload extends GroupChat {
     members: {
         user: {
             username: string;
-            avatar: string;
         };
     }[];
 }
 export function formatGroupchatResponse(groupChat: GroupChatPayload): GroupChatResponse {
     return {
-        avatars: groupChat.members.map((member) => member.user.avatar),
         members: groupChat.members.map((member) => member.user.username),
         id: groupChat.id,
         name: groupChat?.name ?? null,

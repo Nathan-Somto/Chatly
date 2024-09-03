@@ -1,48 +1,54 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { AxiosError } from "axios";
 import { mainApi } from "./axios";
 import toast from "react-hot-toast";
 import { Profile } from "@/hooks/useProfile";
 import { ModifiedMessage } from "@/hooks/useMessages";
 import { v4 } from "uuid";
+import { WallpaperType } from "@/api-types";
+import defaultWallpapers from "@/constants";
+import { DefaultWallpapers } from "@/pages/Wallpaper";
 export function article(name: string) {
   // based on first character of name returns a or an
   // use regex and in case i have an empty string return the empty string
-  if(name.length === 0) return "";
+  if (name.length === 0) return "";
   const firstLetter = name[0].toLowerCase();
   return /aeiou/.test(firstLetter) ? "an" : "a";
 }
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-export function formatLastSeen (lastSeen: Date | string | number): ({
-  lastSeen : string;
+export function formatLastSeen(lastSeen: Date | string | number): {
+  lastSeen: string;
   isOnline: boolean;
-}){
+} {
   const obj = {
     lastSeen: "",
-    isOnline: false
-  }
-  let seconds = 300 * 1000 // 5 minutes
+    isOnline: false,
+  };
+  let seconds = 300 * 1000; // 5 minutes
   const now = new Date().getTime();
-  const lastSeenDate = typeof lastSeen === 'string' || typeof lastSeen === 'number' ? new Date(lastSeen) : lastSeen;
-  if(!(lastSeenDate instanceof Date) ) return obj;
+  const lastSeenDate =
+    typeof lastSeen === "string" || typeof lastSeen === "number"
+      ? new Date(lastSeen)
+      : lastSeen;
+  if (!(lastSeenDate instanceof Date)) return obj;
   const lastSeenTime = lastSeenDate.getTime();
-  const diff = (now - lastSeenTime)
-  if(diff  <= seconds){
-    obj.lastSeen = 'Online';
+  const diff = now - lastSeenTime;
+  if (diff <= seconds) {
+    obj.lastSeen = "Online";
     obj.isOnline = true;
     return obj;
   }
-  seconds = 60 * 1000 // 1 minute
-  if(Math.ceil(diff  / seconds) <= 59) {
+  seconds = 60 * 1000; // 1 minute
+  if (Math.ceil(diff / seconds) <= 59) {
     obj.lastSeen = `last seen ${Math.ceil(diff / seconds)} minutes ago`;
     return obj;
   }
-  seconds = seconds * 60 // 1 hour
-  if(Math.ceil(diff / seconds) <= 23) {
+  seconds = seconds * 60; // 1 hour
+  if (Math.ceil(diff / seconds) <= 23) {
     obj.lastSeen = `last seen ${Math.ceil(diff / seconds)} hours ago`;
     return obj;
   }
@@ -64,28 +70,28 @@ export async function uploadFile(file: File): Promise<string | null> {
     return null;
   }
 }
-export function displayError( error: unknown, defaultMessage: string = "An error occurred"): string {
-let description = defaultMessage;
+export function displayError(
+  error: unknown,
+  defaultMessage: string = "An error occurred"
+): string {
+  let description = defaultMessage;
 
-if (error instanceof AxiosError && error.response?.data.message) {
+  if (error instanceof AxiosError && error.response?.data.message) {
     description = error.response.data.message;
-}
-else if (error instanceof Error) {
+  } else if (error instanceof Error) {
     description = error.message;
-}
-else if(typeof error === "string"){
+  } else if (typeof error === "string") {
     description = error;
-}
-
-  return description
-
-}
-export function generateUsername(name: string){
-  let digits = '';
-  for (let i = 0; i < 3; i++){
-    digits += Math.floor(Math.random() * 10).toString()
   }
-  return name+digits;
+
+  return description;
+}
+export function generateUsername(name: string) {
+  let digits = "";
+  for (let i = 0; i < 3; i++) {
+    digits += Math.floor(Math.random() * 10).toString();
+  }
+  return name + digits;
 }
 export function createOptimisticMessage(
   profile: NonNullable<Profile>,
@@ -95,7 +101,7 @@ export function createOptimisticMessage(
   resource_type: "image" | "video",
   isReply: boolean,
   replyTo: ReplyTo | null
-): ModifiedMessage{
+): ModifiedMessage {
   const resource_type_map: { [key: string]: MessageType } = {
     image: "IMAGE",
     video: "VIDEO",
@@ -105,8 +111,6 @@ export function createOptimisticMessage(
     Sender: {
       username: profile.username,
       avatar: profile.avatar,
-      id: profile.id,
-      Member: [{ role: "MEMBER" }],
     },
     body,
     chatId,
@@ -131,4 +135,20 @@ export function createOptimisticMessage(
   }
 
   return optimisticMessage;
-};
+}
+export function renderChatWallpaper(
+  wallpaperType: WallpaperType,
+  wallpaperUrl: string
+) {
+  let url: string =
+    wallpaperType === "DEFAULT" && wallpaperUrl in defaultWallpapers
+      ? defaultWallpapers[wallpaperUrl as DefaultWallpapers]
+      : wallpaperUrl;
+  return {
+    backgroundImage:
+      wallpaperType === "DEFAULT" || wallpaperType === "UPLOADED"
+        ? `url(${url})`
+        : "none",
+    backgroundColor: (wallpaperType === "COLOR" && url) || "transparent",
+  };
+}

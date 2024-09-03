@@ -5,6 +5,9 @@ type Props = {
  avatars: string[];
   size?: number
 };
+/**
+ * @deprecated 
+ */
 function AvatarGroup({ avatars, size=48 }: Props) {
   const avatarArr: string | 'unknown'[] =
     avatars.length < 3

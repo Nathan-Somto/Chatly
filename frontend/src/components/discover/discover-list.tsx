@@ -32,7 +32,7 @@ export default function DiscoverList() {
           {response?.data?.users?.map((item) => (
             <UserGroupBox
               type="user"
-              avatar={item.avatar}
+              avatarUrl={item.avatarUrl}
               id={item.id}
               lastSeen={item.lastSeen}
               username={item.username}

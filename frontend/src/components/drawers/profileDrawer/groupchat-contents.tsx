@@ -5,7 +5,7 @@ import {
   RemoveMemberPayload,
 } from "@/api-types";
 import { PrivacyType } from "@/components/chats";
-import AvatarGroup from "@/components/common/avatar-group";
+import { Avatar } from "@/components/common/avatar";
 import EditInput from "@/components/common/edit-input";
 import UserGroupBox from "@/components/common/user-group-box";
 import DeleteModal from "@/components/modals/delete-modal";
@@ -43,7 +43,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 type Props = {
-  avatars: string[];
+  imageUrl: string | null;
   name: string;
   description: string;
   inviteCode: string;
@@ -51,7 +51,7 @@ type Props = {
   closeDrawer: () => void;
 };
 export default function GroupChatContents({
-  avatars,
+  imageUrl,
   privacyType,
   inviteCode,
   closeDrawer,
@@ -129,22 +129,13 @@ export default function GroupChatContents({
     displayToast: true,
     defaultMessage: "Failed to leave chat",
     onSuccess(response) {
-      // disconnect from listening to messages from the chat
-      socket?.emit("leaveChat", { chatId, userId: profile?.id });
       // broadcast the message from the response to other users
       socket?.emit("newMessage", {
         message: response.data?.leftMessage,
         chatInfo: activeChat?.groupInfo,
       });
-      // remove the chat from the chatlist
-      if (chatId) {
-        removeChat(chatId);
-      }
-      setMessages([]);
-      // remove the chat from the active chat
-      resetActiveChat();
-      // navigate to user chats screen
-      // done by the page automatically
+      // disconnect from listening to messages from the chat
+      socket?.emit("leaveChat", { chatId, userId: profile?.id });
     },
   });
   // member remove
@@ -345,7 +336,7 @@ export default function GroupChatContents({
         )}
         <header className="border-b mb-5 mt-6 pb-3">
           <div className="mx-auto w-fit mb-3">
-            <AvatarGroup avatars={avatars} size={120} />
+            <Avatar type="Group" src={imageUrl ?? null} size={120} />
           </div>
           {isFetchingMembers ? (
             <div className="bg-[#383A47] dark:gray-300 h-5 w-8 rounded-sm mt-1.5 animate-ping"></div>
@@ -396,7 +387,7 @@ export default function GroupChatContents({
                 }}
               />
             </div>
-          )}      
+          )}
           <Button
             variant="outline"
             className="w-full justify-start gap-x-2"
@@ -424,6 +415,7 @@ export default function GroupChatContents({
                     <UserGroupBox
                       type="user"
                       {...user}
+                      disable={profile?.id === user.id}
                       showRole
                       toggleLoading={toggleLoading}
                     />

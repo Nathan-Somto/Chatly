@@ -22,6 +22,7 @@ import { EyeOff } from "lucide-react";
 import { Switch } from "../ui/switch";
 import Small from "../ui/typo/Small";
 import { cn } from "@/lib/utils";
+import { useAvatarUploader } from "@/hooks/useAvatarUploader";
 type Props = {
   open: boolean;
   setModal: (value: boolean, isGroup: boolean) => void;
@@ -68,14 +69,19 @@ function GroupChatModal({
     watch,
   } = useForm<AddMembersSchemaType | CreateGroupSchemaType>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      privacy: "PUBLIC",
+    },
   });
   const [memberOptions, setMemberOptions] = useState<
     { label: string; value: string }[]
   >([]);
+  const { AvatarUploaderComponent, uploadAvatar } = useAvatarUploader(null, 75);
   const { profile } = useProfileStore();
   const navigate = useNavigate();
   const { socket } = useSocketStore();
   const { setActiveChat } = useActiveChat();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: response, isPending: isFetchingMembers } =
     useGetQuery<GetMembersInfoResponse>({
       enabled: isCreateGroup,
@@ -106,7 +112,7 @@ function GroupChatModal({
           id: response.data?.groupChat?.id,
           isGroup: true,
           name: response.data?.groupChat?.name,
-          avatars: response.data?.avatars,
+          imageUrl: response.data?.groupChat?.imageUrl,
           members: response.data?.members,
           description: response.data?.groupChat?.description,
           inviteCode: response.data?.groupChat?.inviteCode,
@@ -135,8 +141,10 @@ function GroupChatModal({
   const privacy = watch("privacy");
   async function onSubmit(data: AddMembersSchemaType | CreateGroupSchemaType) {
     console.log(data);
+    setIsSubmitting(true);
     try {
       if (isCreateGroup) {
+        const imageUrl = await uploadAvatar();
         createGroup({
           ...data,
           members: [
@@ -145,9 +153,13 @@ function GroupChatModal({
           ],
           ownerName: profile?.username,
           ownerId: profile?.id,
+          imageUrl,
         });
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setIsSubmitting(false);
+    }
     console.log(data);
   }
   return (
@@ -168,6 +180,7 @@ function GroupChatModal({
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           {isCreateGroup && (
             <>
+              <AvatarUploaderComponent type="Group" />
               <InputGroup
                 label={"name"}
                 errors={errors}
@@ -232,8 +245,15 @@ function GroupChatModal({
             )}
           </div>
           <div className="flex items-center justify-end">
-            <Button className="ml-auto px-8 py-3" disabled={isCreating}>
-              {isCreating ? "Creating..." : isCreateGroup ? "Create" : "Add"}
+            <Button
+              className="ml-auto px-8 py-3"
+              disabled={isCreating || isSubmitting}
+            >
+              {isCreating || isSubmitting
+                ? "Creating..."
+                : isCreateGroup
+                ? "Create"
+                : "Add"}
             </Button>
           </div>
         </form>

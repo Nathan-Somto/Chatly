@@ -44,7 +44,7 @@ export default function SearchBody({
               return (
                 <UserGroupBox
                   type="group"
-                  avatars={item.avatars}
+                  imageUrl={item?.imageUrl}
                   chatId={item.chatId}
                   description={item.description}
                   id={item.id}
@@ -58,7 +58,7 @@ export default function SearchBody({
             return (
               <UserGroupBox
                 type="user"
-                avatar={item.avatar}
+                avatarUrl={item.avatarUrl}
                 id={item.id}
                 lastSeen={item.lastSeen}
                 username={item.username}

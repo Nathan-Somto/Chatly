@@ -12,6 +12,7 @@ type Props = Message & {
   openModal: (src: string) => void;
   sending?: boolean;
   failed?: boolean;
+  preview?: boolean;
   index: number;
 };
 import LinkifiedText from "./linkifiedText";
@@ -34,6 +35,7 @@ function Message({
   sending,
   failed,
   index,
+  preview,
 }: Props) {
   const { profile } = useProfileStore();
   const isOwn = profile?.id === senderId;
@@ -43,7 +45,7 @@ function Message({
       <MessageOptions
         isOwn={isOwn}
         id={id}
-        disabled={!!(sending || failed)}
+        disabled={!!(sending || failed || preview)}
         replyTo={{
           parentId: id,
           text: body ?? "",
@@ -66,7 +68,7 @@ function Message({
           id={id}
         >
           {!isOwn && (
-            <ProfileBox avatar={avatar} username={username} id={senderId}>
+            <ProfileBox avatarUrl={avatar} username={username} id={senderId}>
               <figure
                 className={cn(
                   "rounded-full self-end h-10 w-10 flex-shrink-0 overflow-hidden",

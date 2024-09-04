@@ -1,15 +1,12 @@
-import { DarkWall, LightWall } from "@/assets";
-import { useTheme } from "../wrappers/theme-provider";
 import { MessageSquareIcon } from "lucide-react";
 import P from "../ui/typo/P";
 import { ModifiedMessage, useMessages } from "@/hooks/useMessages";
 import { v4 as uuidv4 } from "uuid";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MediaViewModal from "../modals/media-viewer-modal";
 import useSocketStore from "@/hooks/useSocket";
-import { GetMessagesResponse, MessageDeleteEmit } from "@/api-types";
+import { MessageDeleteEmit } from "@/api-types";
 import Message from "./message";
-import { useGetQuery } from "@/hooks/query/useGetQuery";
 import { useParams } from "react-router-dom";
 import Loader from "../ui/loader";
 import { useMessageOptions } from "@/hooks/useMessageOptions";
@@ -19,20 +16,25 @@ import { useMutate } from "@/hooks/query/useMutate";
 import { useProfileStore } from "@/hooks/useProfile";
 import { useChatBodyListeners } from "@/hooks/listeners/useChatBodyListeners";
 import useInfiniteQuery from "@/hooks/query/useInfiniteQuery";
+import { renderChatWallpaper } from "@/lib/utils";
 
 function ChatBody() {
   const [openImgModal, setOpenImgModal] = useState(false);
   const [imgSrc, setImgSrc] = useState("");
-  const { theme } = useTheme();
   const { chatId } = useParams<{ chatId: string }>();
   const { messages, setMessages } = useMessages();
   const { socket } = useSocketStore();
   const removedMessage = useRef<ModifiedMessage | null>(null);
   const { profile } = useProfileStore();
-  const { scrollToRef } = useScrollTo({
-    triggerValues: [messages],
+  const { scrollToRef, scrollToBottom, hasNewMessage } = useScrollTo({
     scrollOnMount: true,
   });
+  const wallpaperStyle = useMemo(() => {
+    return renderChatWallpaper(
+      profile?.wallpaperType ?? "DEFAULT",
+      profile?.wallpaperUrl ?? ""
+    );
+  }, [profile?.wallpaperType, profile?.wallpaperUrl]);
   function openImageModal(src: string) {
     setOpenImgModal(true);
     setImgSrc(src);
@@ -40,7 +42,10 @@ function ChatBody() {
   const {
     data: response,
     isPending: isFetching,
-  } = useInfiniteQuery<'messages', Message>({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery<"messages", Message>({
     enabled: true,
     route: `/chats/${chatId}/messages`,
     queryKey: ["messages", chatId],
@@ -72,7 +77,6 @@ function ChatBody() {
       messagesCopy.length === 0 || prevIndex > messagesCopy.length - 1
         ? null
         : messagesCopy[prevIndex];
-    console.log("prevMessage in on delete success: ", prevMessage);
     const deleteEmit: MessageDeleteEmit = {
       deletedMessageId: id,
       prevMessage: prevMessage ?? null,
@@ -86,11 +90,6 @@ function ChatBody() {
     removedMessage.current = null;
   }
   function onDeleteError(messagesCopy: Message[], prevIndex: number) {
-    console.log(
-      "messages copy and prevIndex in delete error",
-      messagesCopy,
-      prevIndex
-    );
     if (!removedMessage.current) return;
     setMessages(
       messagesCopy.splice(prevIndex, 0, removedMessage.current) ?? null
@@ -100,17 +99,22 @@ function ChatBody() {
   }
   // get the messages from the server
   useEffect(() => {
-    if(response?.pages && response?.pages?.length){
-      const data = response?.pages[0]?.data;
+    if (response?.pages && response?.pages?.length) {
+      const msgsData = response.pages
+        .flatMap((page) => page?.data.messages)
+        .filter((message) => message !== undefined);
       // add the new messages to the store
-      console.log("data in chat body: ", data);
-      if (data) {
-        setMessages(data.messages);
+      console.log("data in chat body: ", msgsData);
+      if (msgsData) {
+        setMessages(msgsData.reverse());
+      }
+      if (response.pages.length === 1) {
+        scrollToBottom();
       }
     }
   }, [response, chatId]);
-  // attach a socket io listener for new messages
-  useChatBodyListeners();
+  // attach a socket io listener for new messages, updates and deletions
+  useChatBodyListeners({ hasNewMessage, attachListeners: true });
   async function handleDelete() {
     toggleDisabled(true);
     const messageCopy = messages?.slice() ?? [];
@@ -140,7 +144,7 @@ function ChatBody() {
     <>
       <section
         style={{
-          backgroundImage: `url(${theme === "dark" ? DarkWall : LightWall})`,
+          ...wallpaperStyle,
           backgroundRepeat: "repeat",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -164,28 +168,45 @@ function ChatBody() {
             </P>
           </div>
         ) : (
-          messages?.map((item, index) => {
-            if (item.type === "SYSTEM") {
-              return (
-                <div key={index} className="flex justify-center my-8">
-                  <P className="bg-brand-p1/80 dark:bg-[rgb(60,116,161)]/80 text-white py-2 px-4 rounded-3xl">
-                    {item.body}
-                  </P>
-                </div>
-              );
-            } else {
-              return (
-                <Message
-                  {...item}
-                  sending={item?.sending}
-                  failed={item?.failed}
-                  openModal={openImageModal}
-                  key={uuidv4()}
-                  index={index}
-                />
-              );
-            }
-          })
+          <>
+            {hasNextPage && (
+              <div className="flex justify-center">
+                {isFetchingNextPage ? (
+                  <Loader withBackground={false} size="sm" />
+                ) : (
+                  <button
+                    onClick={() => fetchNextPage()}
+                    className="text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 text-xs
+                            my-4 dark:hover:text-zinc-300 transition"
+                  >
+                    Load previous messages
+                  </button>
+                )}
+              </div>
+            )}
+            {messages?.map((item, index) => {
+              if (item.type === "SYSTEM") {
+                return (
+                  <div key={index} className="flex justify-center my-8">
+                    <P className="bg-brand-p1/80 dark:bg-[rgb(60,116,161)]/80 text-white py-2 px-4 rounded-3xl">
+                      {item.body}
+                    </P>
+                  </div>
+                );
+              } else {
+                return (
+                  <Message
+                    {...item}
+                    sending={item?.sending}
+                    failed={item?.failed}
+                    openModal={openImageModal}
+                    key={uuidv4()}
+                    index={index}
+                  />
+                );
+              }
+            })}
+          </>
         )}
       </section>
       <MediaViewModal

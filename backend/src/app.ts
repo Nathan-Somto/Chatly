@@ -11,6 +11,7 @@ import { createServer } from "http";
 import { getReqUrl } from "./utils/getReqUrl.js";
 import { router } from "./router/index.js";
 import { socketIo } from "./socket-io/index.js";
+import { fileURLToPath } from "url";
 const app = express();
 // create a http server
 const httpServer = createServer(app);
@@ -55,6 +56,8 @@ router(app);
 app.use(errorHandler);
 socketIo(io);
 if (process.env.NODE_ENV === "production" ) {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
   app.use(express.static(path.join(__dirname, "public", "dist")));
   app.get("*", (_, res) => {
     res.sendFile(path.join(__dirname, "public", "dist", "index.html"));

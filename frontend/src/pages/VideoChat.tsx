@@ -1,6 +1,8 @@
-
+import MediaRoom from "@/components/chat/media-room";
 export default function VideoChat() {
   return (
-    <div>VideoChat</div>
-  )
+    <div className="h-screen w-full">
+      <MediaRoom />
+    </div>
+  );
 }

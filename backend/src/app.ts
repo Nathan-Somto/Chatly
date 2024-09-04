@@ -58,9 +58,9 @@ socketIo(io);
 if (process.env.NODE_ENV === "production" ) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  app.use(express.static(path.join(__dirname, "public", "dist")));
+  app.use(express.static(path.join(__dirname, "..", "public",  "dist")));
   app.get("*", (_, res) => {
-    res.sendFile(path.join(__dirname, "public", "dist", "index.html"));
+    res.sendFile(path.join(__dirname, "..", "public", "dist",  "index.html"));
   });
 } else {
   app.get("/", (req, res) => {

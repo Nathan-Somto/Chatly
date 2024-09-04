@@ -33,7 +33,7 @@ export function CreateDm({ members, onComplete }: Props) {
       );
       const otherUserObj = {
         id: data?.id,
-        avatar: otherUser?.user?.avatar ?? "",
+        avatarUrl: otherUser?.user?.avatar ?? "",
         username: otherUser?.user?.username ?? "",
         lastSeen: otherUser?.user?.lastSeen,
         bio: otherUser?.user?.bio,
@@ -51,7 +51,6 @@ export function CreateDm({ members, onComplete }: Props) {
           ...otherUserObj,
           name: otherUserObj.username,
           isGroup: false,
-          avatars: [],
           message: {
             body: null,
             createdAt: new Date(),

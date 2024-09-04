@@ -27,7 +27,7 @@ function JoinGroupChat({chatId, onComplete}: Props) {
          
           setActiveChat({
             groupInfo: {
-                avatars: groupChat?.avatars,
+                imageUrl: groupChat?.imageUrl,
                 description: groupChat?.description,
                 id: groupChat?.id,
                 isGroup: true,

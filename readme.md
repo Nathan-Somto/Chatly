@@ -19,8 +19,17 @@ Preview the Figma design I used [here](https://www.figma.com/design/jZ69GqMP9gfz
 8. Discover Users 🔍
 
 ### Interface Preview
-![interface-preview](./screenshots/interface-preview.png)
-**Coming Out Soon**
+1. Chat Interface
+![interface-preview](./screenshots/chat%20interface.png)
+2. Discover Users
+![discover-users](./screenshots/discover%20users.png)
+3. Video Chat
+![video-chat](./screenshots/video%20chat.png)
+4. Custom Wallpaper Selection
+![custom-wallpaper](./screenshots/custom%20wallpaper.png)
+5. Landing Page
+![landing-page](./screenshots/landing-page.png)
+
 
 ## Tech Stack
 
@@ -32,6 +41,7 @@ Preview the Figma design I used [here](https://www.figma.com/design/jZ69GqMP9gfz
 - Zustand 🐻
 - Tanstack Query 🔍
 - React Router Dom 🛤️
+- Live Kit 🎥
 
 ### Back End
 - Node 🟢

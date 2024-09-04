@@ -5,17 +5,20 @@ import { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import P from "@/components/ui/typo/P";
 import EditInput from "../../common/edit-input";
-import SettingsItem from "./settings-item";
+import SettingsItem, { SettingsText } from "./settings-item";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/components/wrappers/theme-provider";
 import DeleteModal from "@/components/modals/delete-modal";
 import GroupChatModal from "@/components/modals/groupchat-modal";
 import { useProfileStore } from "@/hooks/useProfile";
-import AvatarUser from "@/components/common/avatar-user";
+import { Avatar } from "@/components/common/avatar";
 import { useMutate } from "@/hooks/query/useMutate";
 import { useQueryClient } from "@tanstack/react-query";
 import { settingsItemData } from "@/constants";
 import { useLogout } from "@/hooks/useLogout";
+import { useNavigate } from "react-router-dom";
+import { GetResponse } from "@/hooks/query";
+import { GetUserResponse } from "@/api-types";
 
 function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
   const queryClient = useQueryClient();
@@ -24,6 +27,7 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
   const { theme, setTheme } = useTheme();
   const username = useRef(profile?.username);
   const bio = useRef(profile?.bio);
+  const navigate = useNavigate();
   const [values, setValue] = useState({
     username: "@" + profile?.username || "",
     bio: profile?.bio || "",
@@ -40,19 +44,32 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
     method: "patch",
     route: "/users",
     onSuccess() {
+      username.current = values.username.slice(1);
+      bio.current = values.bio;
+      queryClient.setQueryData(
+        ["profile"],
+        (_oldData: GetResponse<GetUserResponse>) => {
+          return {
+            data: {
+              user: {
+                ...profile,
+                username: values.username,
+                bio: values.bio
+              },
+            },
+          };
+        }
+      );
       updateProfileStore({
         username: values.username.slice(1),
         bio: values.bio,
       });
-      username.current = values.username.slice(1);
-      bio.current = values.bio;
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
   const displaySaveButton =
     username.current !== values.username.slice(1) || bio.current !== values.bio;
   const disableSaveButton = isUpdating || isDeleting;
-  async function handleClick(item: (typeof settingsItemData)[number]["text"]) {
+  async function handleClick(item: SettingsText) {
     switch (item) {
       case "New Group chat":
         setModals((prevState) => ({
@@ -74,6 +91,9 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
           ...prevState,
           deleteAccount: true,
         }));
+        return;
+      case "Change Wallpaper":
+        navigate(`/${profile?.id}/wallpaper`);
         return;
     }
   }
@@ -132,7 +152,7 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
               </Button>
             )}
             <div className="px-5 space-y-5 mt-8 border-b-2 mb-5 pb-3">
-              <AvatarUser src={profile?.avatar ?? null} size={128} />
+              <Avatar type="User" src={profile?.avatar ?? null} size={128} />
               <EditInput
                 label="Username"
                 defaultValue={values.username}
@@ -146,7 +166,7 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
               />
             </div>
             <div className="space-y-2 px-4 mt-10">
-              {settingsItemData.slice(0, 2).map((item) => (
+              {settingsItemData.slice(0, 3).map((item) => (
                 <SettingsItem
                   text={item.text}
                   Icon={item.icon}
@@ -174,10 +194,9 @@ function SettingsDrawer({ isOpen, openDrawer }: DrawerProps) {
                 />
               </div>
               <div className="h-12"></div>
-              {settingsItemData.slice(2, 4).map((item) => (
+              {settingsItemData.slice(3, 5).map((item) => (
                 <SettingsItem
                   text={item.text}
-                  //@ts-ignore
                   Icon={item.icon}
                   key={uuidv4()}
                   danger={item.text === "Delete Account"}

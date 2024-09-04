@@ -70,6 +70,7 @@ const previewMessages = (profileId: string, avatarUrl: string): Message[] => [
     isReply: false,
   },
 ];
+
 export type DefaultWallpapers = keyof typeof defaultWallpapers;
 function WallpaperSelector() {
   const queryClient = useQueryClient();
@@ -113,6 +114,7 @@ function WallpaperSelector() {
       }
     }
   }, [profile]);
+
   const updatedWallpaper = useMemo(
     () => ({
       wallpaperType: selectedWallpaper?.wallpaperType,
@@ -123,6 +125,7 @@ function WallpaperSelector() {
           ? defaultWallpaperKey ?? undefined
           : selectedWallpaper?.url,
     }),
+    //@ts-ignore
     [selectedWallpaper?.color, selectedWallpaper?.url, selectedWallpaper?.wallpaperType, defaultWallpaperKey]
   );
   const { mutate: updateProfile, isPending: isUpdating } = useMutate({

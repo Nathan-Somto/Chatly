@@ -1,11 +1,13 @@
 import { cn } from "@/lib/utils";
 import {LucideIcon} from "lucide-react"
 import P from "@/components/ui/typo/P";
+import { settingsItemData } from "@/constants";
+export type SettingsText = typeof settingsItemData[number]['text']
 type SettingsItemProps = {
-    text: "New Group chat" | "Request Feature" | "Logout" | "Delete Account";
+    text: SettingsText;
     Icon: LucideIcon;
     size?: number;
-    handleClick?: (item: "New Group chat" | "Request Feature" | "Logout" | "Delete Account") => Promise<void>;
+    handleClick?: (item: SettingsText) => Promise<void>;
     danger?: boolean;
   };
   function SettingsItem({

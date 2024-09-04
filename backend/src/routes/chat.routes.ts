@@ -17,7 +17,40 @@ import {
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
 const router = Router();
-
+/**
+ * @swagger
+ * /chats/{chatId}/join-via-link:
+ *   post:
+ *     summary: Join a chat via invite link
+ *     description: Allows a user to join a public or private group chat using an invite link.
+ *     tags: [Chat]
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the chat.
+ *     responses:
+ *       200:
+ *         description: Successfully joined the chat via invite link.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "successfully joined the chat via link"
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *       404:
+ *         description: Chat not found or invalid link.
+ *       500:
+ *         description: Internal server error.
+ */
+router.post("/:chatId/join-via-link", joinViaLink);
 router.use(ClerkExpressRequireAuth());
 /**
  * @swagger
@@ -313,40 +346,6 @@ router.post("/create-dm", createDmChat);
  */
 
 router.post("/create-groupchat", createGroupChat);
-/**
- * @swagger
- * /chats/{chatId}/join-via-link:
- *   post:
- *     summary: Join a chat via invite link
- *     description: Allows a user to join a public or private group chat using an invite link.
- *     tags: [Chat]
- *     parameters:
- *       - in: path
- *         name: chatId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the chat.
- *     responses:
- *       200:
- *         description: Successfully joined the chat via invite link.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "successfully joined the chat via link"
- *                 success:
- *                   type: boolean
- *                   example: true
- *       404:
- *         description: Chat not found or invalid link.
- *       500:
- *         description: Internal server error.
- */
-router.post("/:chatId/join-via-link", joinViaLink);
 /**
  * @swagger
  * /api/v1/chats/{chatId}/join:

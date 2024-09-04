@@ -26,13 +26,18 @@ function InviteRedirect() {
     isPending,
   } = useMutate<JoinGroupChatPayload>({
     method: "post",
-    route: `/chats/${chatId}/join`,
+    route: `/join-via-link`,
     displayToast: false,
+    noToken: true,
   });
   const handleJoinViaLink = async () => {
     if (isPending) return;
     try {
-      const response = await JoinViaLink({ inviteCode: inviteCode ?? "" });
+      const response = await JoinViaLink({
+        inviteCode: inviteCode ?? "",
+        userId: profile?.id ?? "",
+        chatId: chatId ?? "",
+      });
       console.log("the response : ", response);
       const groupChat = response.data
         ?.groupChat as GroupChatResponse["groupChat"];
@@ -65,8 +70,12 @@ function InviteRedirect() {
     }
   };
   useEffect(() => {
+    if (!profile?.id || !chatId || !inviteCode) {
+      setNotFoundError(true);
+      return;
+    }
     handleJoinViaLink();
-  }, []);
+  }, [chatId, inviteCode, profile?.id]);
   if (notFoundError) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background">
@@ -86,7 +95,13 @@ function InviteRedirect() {
           Failed to join Group Chat
         </H1>
         <Button
-          onClick={() => JoinViaLink({ inviteCode: inviteCode ?? "" })}
+          onClick={() =>
+            JoinViaLink({
+              inviteCode: inviteCode ?? "",
+              userId: profile?.id ?? "",
+              chatId: chatId ?? "",
+            })
+          }
           className="mt-4"
         >
           Retry

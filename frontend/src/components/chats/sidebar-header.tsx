@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import GroupChatModal from "../modals/groupchat-modal";
 import { DmModal } from "../modals/dm-modal";
 import { useProfileStore } from "@/hooks/useProfile";
-import AvatarUser from "../common/avatar-user";
+import {Avatar} from "../common/avatar";
 type Props = {
   openDrawer: (value: boolean) => void;
   handleSearch: (keywords: string) => Promise<void>;
@@ -41,7 +41,9 @@ function SidebarHeader({
   const [openGroupModal, setOpenGroupModal] = useState(false);
   const [openDmModal, setOpenDmModal] = useState(false);
   const navigate = useNavigate();
-  function handleSubmit(e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>) {
+  function handleSubmit(
+    e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLInputElement>
+  ) {
     e.preventDefault();
     handleSearch(keywords);
   }
@@ -74,7 +76,7 @@ function SidebarHeader({
             variant={"ghost"}
             className="p-0  text-gray-500 border-none  h-fit w-fit flex-shrink-0  hover:bg-transparent hover:opacity-50 border-2 border-slate-500  dark:border-slate-700"
           >
-            <AvatarUser src={profile?.avatar ?? ""} size={40} />
+            <Avatar type="User" src={profile?.avatar ?? ""} size={40} />
           </Button>
         )}
         <form
@@ -84,7 +86,7 @@ function SidebarHeader({
           <label className="w-full  relative  ">
             <Button
               variant={"ghost"}
-              type='button'
+              type="button"
               className="absolute left-0 top-0 ml-2 bottom-0 my-auto h-fit w-fit mr-4 p-0 text-gray-500 hover:bg-transparent hover:text-gray-500"
             >
               <SearchIcon size={16} />
@@ -112,7 +114,7 @@ function SidebarHeader({
               size={"icon"}
               className="rounded-full bg-neutral-200 hover:opacity-50 dark:bg-neutral-700 border-2"
             >
-             <MoreHorizontalIcon/>
+              <MoreHorizontalIcon />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="py-3 space-y-2">

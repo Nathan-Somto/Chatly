@@ -10,18 +10,19 @@ import { cn, formatLastSeen } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ProfileDrawer from "../drawers/profileDrawer/profile-drawer";
 import { useProfileStore } from "@/hooks/useProfile";
+import { Avatar } from "../common/avatar";
 
 function ChatHeader() {
   const [openDrawer, setOpenDrawer] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1024px)");
   const activeChat = useActiveChat((state) => state.activeChat);
-  const {profile} = useProfileStore();
+  const { profile } = useProfileStore();
   const members = useMemo(() => {
-    return (
-      activeChat?.groupInfo?.members ?? []
-    );
+    return activeChat?.groupInfo?.members ?? [];
   }, [activeChat]);
-  const { lastSeen, isOnline } = formatLastSeen(activeChat?.dmInfo?.lastSeen ?? new Date());
+  const { lastSeen, isOnline } = formatLastSeen(
+    activeChat?.dmInfo?.lastSeen ?? new Date()
+  );
   const navigate = useNavigate();
   function handleDrawerOpen() {
     setOpenDrawer(true);
@@ -41,15 +42,21 @@ function ChatHeader() {
         <div className="flex max-lg:w-[80%] max-lg:flex-shrink-0 flex-row-reverse lg:gap-5 justify-between  lg:items-center lg:flex-row">
           <figure
             onClick={isMobile ? handleDrawerOpen : void 0}
-            className="h-12 max-lg:hover:opacity-70 max-lg:cursor-pointer w-12 max-lg:text-center  text-slate-500 flex  items-center justify-center  "
+            className="max-lg:hover:opacity-70 max-lg:cursor-pointer  max-lg:text-center  text-slate-500 flex  items-center justify-center  "
           >
             {activeChat?.groupInfo?.isGroup ? (
-              <AvatarGroup  avatars={activeChat?.groupInfo?.avatars ?? []} />
+              <Avatar
+                type="Group"
+                src={activeChat?.groupInfo?.imageUrl ?? null}
+                size={48}
+                alt="Group Avatar"
+              />
             ) : (
-              <img
-                src={activeChat?.dmInfo?.avatar ?? ""}
-                alt="other user avatar"
-                className="h-full w-full rounded-full"
+              <Avatar
+                type="User"
+                src={activeChat?.dmInfo?.avatarUrl ?? null}
+                alt={`${activeChat?.dmInfo?.username ?? ""} avatar`}
+                size={48}
               />
             )}
           </figure>

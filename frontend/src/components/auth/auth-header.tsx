@@ -1,24 +1,10 @@
 import { Link } from "react-router-dom";
 import { Logo } from "@/assets";
-import { ThemeToggle } from "../wrappers/theme-toggle";
+import Header from "../common/header";
 
 function AuthHeader() {
   return (
-    <header
-      className="
-  h-16 
-  top-0 
-  z-[8] 
-  w-full 
-  px-5 
-  py-3
-  flex
-  justify-between
-  items-center
-  inset-x-0
-  border-b
-  "
-    >
+    <Header>
       <Link to="/">
         <img
           src={Logo}
@@ -30,8 +16,7 @@ function AuthHeader() {
     "
         />
       </Link>
-      <ThemeToggle />
-    </header>
+    </Header>
   );
 }
 

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/connectDb";
+import { formatUsersResponse } from "../utils/formatUsersResponse";
 /**
  * @method GET
  * @param req
@@ -79,9 +80,10 @@ const search = async (req: Request, res: Response, next: NextFunction) => {
         members: undefined
       };
     });
+    const formattedUsers = formatUsersResponse(users);
     return res.status(200).json({
       message: "search results",
-      users,
+      users: formattedUsers,
       groupChats: formattedGroupChat,
       success: true,
     });

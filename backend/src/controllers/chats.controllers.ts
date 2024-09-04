@@ -206,7 +206,7 @@ const createGroupChat = async (
   next: NextFunction
 ) => {
   try {
-    const { name, description, members, privacy, ownerName, ownerId } =
+    const { name, description, members, privacy, ownerName, ownerId, imageUrl } =
       req.body;
     if (Array.isArray(members) && members.length >= 2) {
       const isValidMembers = members.every(
@@ -236,6 +236,7 @@ const createGroupChat = async (
               role: member?.isOwner ? "OWNER" : "MEMBER",
             })),
           },
+          imageUrl
         },
         select: {
           id: true,
@@ -446,11 +447,10 @@ const createDmChat = async (
  */
 const joinViaLink = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { inviteCode } = req.body;
-    const clerkId = req.auth.userId;
+    const { inviteCode, userId, chatId } = req.body;
     const user = await prisma.user.findUnique({
       where: {
-        clerkId,
+        id: userId
       },
       select: {
         id: true,
@@ -464,8 +464,7 @@ const joinViaLink = async (req: Request, res: Response, next: NextFunction) => {
       });
       return;
     }
-    const userId = user.id;
-    const { chatId } = req.params;
+    console.log("the user: ", user);
     const groupChat = await prisma.chat.findFirst({
       where: {
         id: chatId,
@@ -490,7 +489,7 @@ const joinViaLink = async (req: Request, res: Response, next: NextFunction) => {
     if (groupChat?.members.length) {
       res.status(200).json({
         chatId,
-        message: "user already part of gorup chat!",
+        message: "user already part of group chat!",
         success: true,
       });
     }

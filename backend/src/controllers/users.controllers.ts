@@ -1,6 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 import { prisma } from "../config/connectDb";
 import clerkClient from "@clerk/clerk-sdk-node";
+import { formatUsersResponse } from "../utils/formatUsersResponse";
 /**
  * @method GET
  * @description gets a given user profile
@@ -71,6 +72,7 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
       },
     });
     let formattedMemberInfo;
+    let formattedUsers;
     if (memberInfo) {
       formattedMemberInfo = users.map((user) => {
         return {
@@ -79,10 +81,13 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
         };
       });
     }
+    else {
+      formattedUsers = formatUsersResponse(users);
+    }
     return res.status(200).json({
       success: true,
       message: "succesfully retrieved users",
-      users: memberInfo ? formattedMemberInfo : users,
+      users: memberInfo ? formattedMemberInfo : formattedUsers,
     });
   } catch (err) {
     next(err);

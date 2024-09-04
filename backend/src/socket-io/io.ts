@@ -16,9 +16,10 @@ export function socketIo(io: Server<DefaultEventsMap, DefaultEventsMap, DefaultE
           socket.join(chatId);
           console.log(`user ${userId} joined the chat ${chatId}`);
         });
-        // for leaving a particular room (direct message or group chat)
+        // for leaving a particular room (dm or group chat)
         socket.on("leaveChat", ({ chatId, userId }) => {
           socket.leave(chatId);
+          io.emit("leftChat", { chatId, userId });
           console.log(`user ${userId} left the chat ${chatId}`);
         });
         // for sending a message

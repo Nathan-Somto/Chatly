@@ -1,12 +1,15 @@
 import { TOKEN_REFRESH_TIME } from "@/constants";
 import { useAuth } from "@clerk/clerk-react";
 import React from "react";
-
-export function useGetToken() {
+type Props ={
+  shouldFetchToken?: boolean;
+}
+export function useGetToken({shouldFetchToken=true}:Props) {
   const { getToken, isSignedIn } = useAuth();
   const [token, setToken] = React.useState<string | null>(null);
 
   async function refetchToken() {
+    if(!shouldFetchToken) return;
     console.log("refetching...");
     const gottenToken = await getToken({
       template: "auth-token",
@@ -42,7 +45,7 @@ export function useGetToken() {
         }
       } 
     }
-   
+    if(!shouldFetchToken) return;
       fetchToken();
     if (isSignedIn) {
       checkTokenExpiry();
@@ -51,7 +54,7 @@ export function useGetToken() {
     return () => {
       isMounted = false;
     };
-  }, [getToken,isSignedIn]);
+  }, [getToken,isSignedIn, shouldFetchToken]);
 
   return { token, refetchToken };
 }

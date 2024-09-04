@@ -18,7 +18,7 @@ export default function useInfiniteQuery<K extends string, T>({
   nextCursorKey = "nextCursor",
 }: GetInfiniteQueryType<T>) {
   const [localEnabled, setLocalEnabled] = useState(false);
-  const { token, refetchToken } = useGetToken();
+  const { token, refetchToken } = useGetToken({shouldFetchToken: true});
 
   useEffect(() => {
     if (token !== null && enabled) {

@@ -14,7 +14,7 @@ export function useGetQuery<T>({
   refetchOnMount = false
 }: GetQueryType<T>) {
   const [localEnabled, setLocalEnabled] = useState(false);
-  const { token, refetchToken } = useGetToken();
+  const { token, refetchToken } = useGetToken({ shouldFetchToken: true });
 
   useEffect(() => {
     if (token !== null && enabled) {

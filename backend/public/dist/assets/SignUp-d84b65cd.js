@@ -1,0 +1,1 @@
+import{e as a,j as e,M as r}from"./index-e8a81011.js";import{a as i}from"./useCustomPages-4ee6c143.js";function o(){const{theme:n}=a();return e.jsx(i,{afterSignUpUrl:"/onboarding",signInUrl:"/sign-in",appearance:r(n),routing:"path",path:"/sign-up"})}export{o as default};

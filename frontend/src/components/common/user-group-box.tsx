@@ -5,8 +5,7 @@ import { avatar1, avatar2, avatar3 } from "@/assets";
 import { v4 as uuidv4 } from "uuid";
 import { CreateDm } from "@/services/createDm";
 import { useProfileStore } from "@/hooks/useProfile";
-import AvatarUser from "./avatar-user";
-import AvatarGroup from "./avatar-group";
+import {Avatar} from "./avatar";
 import { JoinGroupChat } from "@/services/joinGroupChat";
 interface UserProps extends UserBox {
   type: "user";
@@ -19,6 +18,7 @@ interface GroupProps extends GroupBox {
 interface CommonProps {
   toggleLoading: (value: boolean) => void;
   showRole?: boolean;
+  disable?: boolean;
 }
 
 type Props = (UserProps | GroupProps) & CommonProps;
@@ -63,16 +63,16 @@ export default function UserGroupBox(props: Props) {
       transition
       cursor-pointer
       `}
-      onClick={handleClick}
+      onClick={!props.disable ? handleClick : undefined}
     >
       <div className="relative">
         {isGroup ? (
           <>
-            <AvatarGroup avatars={props.avatars} />
+            <Avatar type="Group" src={props.imageUrl} />
           </>
         ) : (
           <>
-            <AvatarUser src={props.avatar} />
+            <Avatar type='User' src={props.avatarUrl} />
             {obj?.isOnline && (
               <div className="bg-brand-p1 rounded-full ring-2 ring-white h-3 block w-3  shadow-[0_0_20px_#4C8DC3] right-0 top-0 absolute z-30"></div>
             )}
@@ -112,35 +112,35 @@ export default function UserGroupBox(props: Props) {
 }
 export const sampleUserBoxData: UserBox[] = [
   {
-    avatar: avatar2,
+    avatarUrl: avatar2,
     id: uuidv4(),
     lastSeen: new Date(),
     username: "user",
     role: "OWNER",
   },
   {
-    avatar: avatar1,
+    avatarUrl: avatar1,
     id: uuidv4(),
     lastSeen: new Date(new Date().getTime() - 30 * 60 * 1000),
     username: "user1",
     role: "ADMIN",
   },
   {
-    avatar: avatar2,
+    avatarUrl: avatar2,
     id: uuidv4(),
     lastSeen: new Date(new Date().getTime() - 40 * 60 * 1000),
     username: "user2",
     role: "MEMBER",
   },
   {
-    avatar: avatar1,
+    avatarUrl: avatar1,
     id: uuidv4(),
     lastSeen: new Date(new Date().getTime() - 100 * 60 * 1000),
     username: "user3",
     role: "MEMBER",
   },
   {
-    avatar: avatar3,
+    avatarUrl: avatar3,
     id: uuidv4(),
     lastSeen: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
     username: "user4",

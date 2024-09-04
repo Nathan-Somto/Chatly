@@ -2,9 +2,8 @@ import { article, cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChatBoxType } from ".";
 import { useMemo } from "react";
-import AvatarGroup from "../common/avatar-group";
 import { useActiveChat } from "@/hooks/useActiveChat";
-import AvatarUser from "../common/avatar-user";
+import { Avatar } from "../common/avatar";
 import { useProfileStore } from "@/hooks/useProfile";
 import { CheckCheckIcon, CheckIcon } from "lucide-react";
 
@@ -15,15 +14,17 @@ function ChatBox({
   isGroup,
   name,
   message: { body, createdAt, readByIds: readBy, type, senderId },
-  avatars,
+  avatarUrl,
   lastSeen,
   members,
   bio,
   email,
   description,
   inviteCode,
+  imageUrl,
   privacy,
 }: Props) {
+  console.log("imageUrl: ", imageUrl)
   const setActiveChat = useActiveChat((state) => state.setActiveChat);
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ function ChatBox({
     const dmInfo = isGroup
       ? null
       : {
-          avatar: avatars[0],
+          avatarUrl,
           username: name ?? "Chatly User",
           id,
           lastSeen: lastSeen,
@@ -47,7 +48,7 @@ function ChatBox({
           id,
           isGroup: true,
           name: name ?? "Group Chat",
-          avatars,
+          imageUrl,
           members,
           description: description ?? "No Description",
           inviteCode: inviteCode ?? null,
@@ -87,15 +88,13 @@ function ChatBox({
         selected ? "bg-neutral-200 dark:bg-[#272A20]" : ""
       )}
     >
-      {isGroup ? (
-        <AvatarGroup avatars={avatars} />
-      ) : (
-        <AvatarUser
-          src={avatars?.length > 0 ? avatars[0] : null}
-          alt="user's avatar"
-          size={48}
-        />
-      )}
+      <Avatar
+        type={isGroup ? "Group" : "User"}
+        src={(isGroup ? imageUrl : avatarUrl) ?? null}
+        alt="user's avatar"
+        size={48}
+      />
+
       <div className="min-w-0 flex-1">
         <div className="focus:outline-none">
           <span className="absolute inset-0" aria-hidden="true" />
@@ -139,7 +138,7 @@ function ChatBox({
                   : "text-black font-medium dark:text-gray-400"
               )}
             >
-              {type === "TEXT" || type === 'SYSTEM'
+              {type === "TEXT" || type === "SYSTEM"
                 ? body === null
                   ? "start a conversation!"
                   : body

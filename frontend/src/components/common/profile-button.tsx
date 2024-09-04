@@ -2,12 +2,12 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { useProfileStore } from "@/hooks/useProfile";
 import { Button } from "../ui/button";
-import AvatarUser from "./avatar-user";
+import { Avatar } from "./avatar";
 import { LogOutIcon, MessageCircleIcon } from "lucide-react";
 
 const ProfileButton = () => {
@@ -15,7 +15,7 @@ const ProfileButton = () => {
   const navigate = useNavigate();
 
   if (!profile) return null;
-  console.log(profile.avatar)
+  console.log(profile.avatar);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,13 +23,23 @@ const ProfileButton = () => {
           variant={"ghost"}
           className="flex items-center space-x-2 focus:outline-none"
         >
-          <AvatarUser src={profile.avatar} alt={profile.username} size={40} />
+          <Avatar
+            type="User"
+            src={profile.avatar}
+            alt={profile.username}
+            size={40}
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[300px] -bottom-20 p-4 mr-10 max-w-none z-[1000000]">
         <div className="flex items-center space-x-4 mb-2 py-2">
           <div className="flex-shrink-0">
-            <AvatarUser src={profile.avatar} alt={profile.username} size={64} />
+            <Avatar
+              type="User"
+              src={profile.avatar}
+              alt={profile.username}
+              size={64}
+            />
           </div>
           <div className="flex flex-col">
             <span className="font-medium truncate">{profile.username}</span>

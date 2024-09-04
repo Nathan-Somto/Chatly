@@ -5,15 +5,18 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
-import AvatarUser from "../common/avatar-user";
+import { Avatar } from "../common/avatar";
 import { Button } from "../ui/button";
 import { CreateDm } from "@/services/createDm";
 import { SendHorizonalIcon } from "lucide-react";
 import { useProfileStore } from "@/hooks/useProfile";
-type Props = Omit<Message["message"]["Sender"], "Member"> & {
+type Props = {
+  username: string;
+  avatarUrl: string;
+  id: string;
   children: React.ReactNode;
 };
-export default function ProfileBox({ children, avatar, username, id }: Props) {
+export default function ProfileBox({ children, avatarUrl, username, id }: Props) {
   const { profile } = useProfileStore();
   const { handleCreate, isPending } = CreateDm({
     members: [{ userId: profile?.id ?? "" }, { userId: id }],
@@ -27,8 +30,9 @@ export default function ProfileBox({ children, avatar, username, id }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent className="py-3 px-2 min-w-[100px]">
           <div className="flex flex-col gap-y-1">
-            <AvatarUser
-              src={avatar}
+            <Avatar
+              type="User"
+              src={avatarUrl}
               alt={username}
               size={60}
               className="mx-0"

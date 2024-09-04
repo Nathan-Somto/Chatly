@@ -12,7 +12,9 @@ import { useNavigate } from "react-router-dom";
 import { useProfileStore } from "@/hooks/useProfile";
 import { AxiosResponse } from "axios";
 import { displayError, uploadFile } from "@/lib/utils";
-import AvatarUser from "../common/avatar-user";
+import {Avatar} from "../common/avatar";
+import { GetUserResponse } from "@/api-types";
+import { useTheme } from "../wrappers/theme-provider";
 type Props = {
   username: string;
   bio: string;
@@ -30,6 +32,7 @@ const schema = z.object({
 });
 type SchemaType = z.infer<typeof schema>;
 function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const imageRef = useRef<null | HTMLInputElement>(null);
   const { setProfile } = useProfileStore();
@@ -47,7 +50,7 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
       avatar,
     },
   });
-  function onSuccess(response: AxiosResponse<any, any>) {
+  function onSuccess(response: AxiosResponse<GetUserResponse>) {
     console.log("response: ", response);
     const user = response.data.user;
     setProfile({
@@ -58,6 +61,8 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
       id: user.id,
       isOnboarded: user.isOnboarded,
       username: user.username,
+      wallpaperType: user?.wallpaperType,
+      wallpaperUrl: user?.wallpaperUrl,
     });
     navigate(`/${user.clerkId}/chats`);
     console.log(response);
@@ -92,6 +97,7 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
           ...data,
           email,
           clerkId,
+          theme, // for backend selection of default wallpaper
           isOnboarded: true,
         });
       } else {
@@ -129,7 +135,8 @@ function AuthForm({ username, bio, avatar, id, clerkId, email }: Props) {
       onSubmit={handleSubmit(onSubmit)}
     >
       <figure className="flex items-center gap-2 mx-auto relative h-24 w-24 text-sm flex-wrap justify-center flex-shrink-0">
-        <AvatarUser
+        <Avatar
+          type="User"
           src={files || avatar}
           alt="avatar preview"
           size={96}

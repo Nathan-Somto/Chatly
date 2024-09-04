@@ -24,6 +24,7 @@ export type MutateType<T> = {
   onError?: (() => void) | ((err: AxiosError) => void);
   defaultMessage?: string;
   displayToast?: boolean;
+  noToken?: boolean;
   reqOptions?: AxiosRequestConfig;
 };
 export type GetResponse<T> = {

@@ -115,5 +115,7 @@ export type EditGroupChatPayload = {
 }
 export type JoinGroupChatPayload = {
   inviteCode: string
+  userId: string
+  chatId: string
 }
 /** Ends Here **/

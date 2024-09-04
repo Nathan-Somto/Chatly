@@ -1,29 +1,33 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 // handles scrolling to a ref element
 type Props = {
-    triggerValues: unknown[];
-    scrollOnMount?: boolean;
-    scrollThreshold?: number;
-}
+  scrollOnMount?: boolean;
+};
 
-export function useScrollTo({triggerValues, scrollOnMount=false, scrollThreshold= 100}: Props) {
- const scrollToRef = useRef<HTMLDivElement | null>(null);
-  function scrollTo() {
+export function useScrollTo({ scrollOnMount = true }: Props) {
+  const [newMessage, setNewMessage] = useState(false);
+  const scrollToRef = useRef<HTMLDivElement | null>(null);
+  function scrollToBottom() {
     if (scrollToRef.current) {
       scrollToRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }
-  function shouldScroll() {
+  function hasNewMessage() {
+    setNewMessage(true);
+  }
+  function shouldAutoScroll() {
     if (scrollToRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollToRef.current.parentElement!;
-      return scrollHeight - scrollTop - clientHeight >= scrollThreshold;
+      const { scrollTop, scrollHeight, clientHeight } =
+        scrollToRef.current.parentElement!;
+      return scrollHeight - scrollTop - clientHeight <= 100;
     }
     return false;
   }
-  useEffect(() =>{
-    if(scrollOnMount || shouldScroll()){
-        scrollTo();
+  useEffect(() => {
+    if (scrollOnMount || newMessage) {
+      scrollToBottom();
+      setNewMessage(false);
     }
-  },[triggerValues,scrollOnMount])
-    return { scrollToRef };
+  }, [scrollOnMount, newMessage]);
+  return { scrollToRef, scrollToBottom, shouldAutoScroll, hasNewMessage };
 }

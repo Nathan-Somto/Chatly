@@ -3,10 +3,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 type ActiveGroupType = Omit<
   ChatBoxType,
-  "email" | "bio" | "message" | "lastSeen"
+  "email" | "bio" | "message" | "lastSeen" | "avatarUrl"
 >;
-type ActiveDmType = Pick<ChatBoxType, "id" | "lastSeen" | "bio" | "email"> & {
-  avatar: string;
+type ActiveDmType = Pick<ChatBoxType, "id" | "lastSeen" | "bio" | "email" | "avatarUrl"> & {
   username: string;
 };
 // when i click a chat this is responsible for filling the chat header with the chat info

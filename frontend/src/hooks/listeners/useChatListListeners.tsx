@@ -7,16 +7,22 @@ import { useProfileStore } from "../useProfile";
 import { v4 } from "uuid";
 import useSocketStore from "../useSocket";
 import { ChatBoxType } from "@/components/chats";
-import { useChatBodyListeners } from "./useChatBodyListeners";
+import { InfiniteMessages, useChatBodyListeners } from "./useChatBodyListeners";
 import { GetResponse } from "../query";
-type ChatListResponse =  GetResponse<{
-    chats: ChatBoxType[];
-}> | undefined
+import { useNavigate } from "react-router-dom";
+import { useMessages } from "../useMessages";
+type ChatListResponse =
+  | GetResponse<{
+      chats: ChatBoxType[];
+    }>
+  | undefined;
 export function useChatListListeners() {
+  const navigate = useNavigate();
   const { socket } = useSocketStore();
   const { profile } = useProfileStore();
   const { activeChat, updateLastSeen, reset } = useActiveChat();
   const { removeChat } = useChatStore();
+  const { setMessages } = useMessages();
   const queryClient = useQueryClient();
   const {
     handleDeleteMessage: onDeleteMsg,
@@ -27,13 +33,11 @@ export function useChatListListeners() {
     attachListeners: false,
   });
 
-
   const handleNewMessage = useCallback(
     (data: MessageEmit) => {
       queryClient.setQueryData(["chats"], (oldChatList: ChatListResponse) => {
         console.log("handle new message: ", oldChatList?.data?.chats);
-        const chatListCopy =
-          oldChatList?.data?.chats?.slice() ?? [];
+        const chatListCopy = oldChatList?.data?.chats?.slice() ?? [];
         const foundChatIndex = chatListCopy.findIndex(
           (chat) => chat.id === data.chatInfo.id
         );
@@ -74,15 +78,12 @@ export function useChatListListeners() {
   );
 
   const handleChatLeave = useCallback(
-    ({ chatId }: { chatId: string; userId: string }) => {
-      if (
-        activeChat?.dmInfo?.id === chatId ||
-        activeChat?.groupInfo?.id === chatId
-      ) {
-        reset();
-      }
+    ({ chatId, userId }: { chatId: string; userId: string }) => {
+      if (userId !== profile?.id) return;
       queryClient.setQueryData(["chats"], (oldChatList: ChatListResponse) => {
-        const chatListCopy = oldChatList?.data?.chats?.filter((chat) => chat.id !== chatId);
+        const chatListCopy = oldChatList?.data?.chats?.filter(
+          (chat) => chat.id !== chatId
+        );
         return {
           ...oldChatList,
           data: {
@@ -90,15 +91,28 @@ export function useChatListListeners() {
           },
         };
       });
+      queryClient.setQueryData(
+        ["messages", chatId],
+        (_OldMsgData: InfiniteMessages) => {
+          return {
+            pageParams: [],
+            pages: [],
+          };
+        }
+      );
+      if (isActiveChat(chatId)) {
+        reset();
+        setMessages(null);
+        navigate(`/${profile?.id}/chats`);
+      }
     },
-    [activeChat, queryClient, removeChat, reset]
+    [activeChat, queryClient, removeChat, reset, profile]
   );
 
   const handleUpdateMessage = useCallback(
     (data: MessageEmit) => {
       queryClient.setQueryData(["chats"], (oldChatList: ChatListResponse) => {
-        const chatListCopy =
-        oldChatList?.data?.chats?.slice() ?? [];
+        const chatListCopy = oldChatList?.data?.chats?.slice() ?? [];
         const foundChatIndex = chatListCopy.findIndex(
           (chat) => chat.id === data.chatInfo.id
         );
@@ -126,7 +140,11 @@ export function useChatListListeners() {
             }
           }
         }
-        return chatListCopy;
+        return {
+          data: {
+            chats: chatListCopy,
+          },
+        };
       });
       if (!isActiveChat(data.chatInfo.id)) {
         onUpdateMsg(data);
@@ -138,8 +156,7 @@ export function useChatListListeners() {
   const handleMessageDelete = useCallback(
     ({ chatId, deletedMessageId, prevMessage, userId }: MessageDeleteEmit) => {
       queryClient.setQueryData(["chats"], (oldChatList: ChatListResponse) => {
-        const chatListCopy =
-        oldChatList?.data?.chats?.slice() ?? [];
+        const chatListCopy = oldChatList?.data?.chats?.slice() ?? [];
         const foundChatIndex = chatListCopy.findIndex(
           (chat) => chat.id === chatId
         );
@@ -169,7 +186,11 @@ export function useChatListListeners() {
             };
           }
         }
-        return chatListCopy;
+        return {
+          data: {
+            chats: chatListCopy,
+          },
+        };
       });
       if (!isActiveChat(chatId)) {
         onDeleteMsg({ chatId, deletedMessageId, prevMessage, userId });
@@ -181,13 +202,13 @@ export function useChatListListeners() {
   useEffect(() => {
     if (socket) {
       socket.on("newMessage", handleNewMessage);
-      socket.on("leaveChat", handleChatLeave);
+      socket.on("leftChat", handleChatLeave);
       socket.on("messageUpdated", handleUpdateMessage);
       socket.on("messageDeleted", handleMessageDelete);
 
       return () => {
         socket.off("newMessage", handleNewMessage);
-        socket.off("leaveChat", handleChatLeave);
+        socket.off("leftChat", handleChatLeave);
         socket.off("messageUpdated", handleUpdateMessage);
         socket.off("messageDeleted", handleMessageDelete);
       };

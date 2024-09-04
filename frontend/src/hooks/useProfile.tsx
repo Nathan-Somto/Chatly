@@ -1,17 +1,8 @@
+import { GetUserResponse } from "@/api-types";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-export type Profile = {
-  username: string;
-  bio: string;
-  avatar: string;
-  id: string;
-  clerkId: string;
-  isOnboarded: boolean;
-  email: string;
-  wallpaperUrl?: string;
-  wallpaperType?: "DEFAULT" | "UPLOADED";
-} | null;
+export type Profile = GetUserResponse['user'] | null;
 
 const initialProfile: Profile = null;
 

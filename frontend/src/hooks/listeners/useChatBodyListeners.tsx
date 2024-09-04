@@ -7,12 +7,15 @@ import {
   MessageDeleteEmit,
   MessageEmit,
 } from "@/api-types";
-import { useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useQueryClient } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
-type InfiniteMessages = {
-  pages: AxiosResponse<GetMessagesResponse | undefined>[];
-};
-export function useChatBodyListeners(props = { attachListeners: true }) {
+export type InfiniteMessages = InfiniteData<AxiosResponse<GetMessagesResponse | undefined>>;
+
+type Props = {
+  attachListeners?: boolean;
+  hasNewMessage?: () => void;
+} | undefined
+export function useChatBodyListeners(props: Props) {
   const { messages } = useMessages();
   const { activeChat } = useActiveChat();
   const { socket } = useSocketStore();
@@ -61,17 +64,21 @@ export function useChatBodyListeners(props = { attachListeners: true }) {
           }
           const newMessages = oldData.pages[0].data?.messages ?? [];
           return {
+            pageParams: oldData.pageParams,
             pages: [
+              ...oldData.pages.slice(1),
               {
                 data: {
                   messages: [...newMessages, data.message],
                 },
               },
-              ...oldData.pages.slice(1),
             ],
           };
         }
       );
+      if(props?.hasNewMessage){
+       props.hasNewMessage();
+      }
     },
     [includeMessage]
   );
@@ -101,6 +108,7 @@ export function useChatBodyListeners(props = { attachListeners: true }) {
             };
           });
           return {
+            pageParams: oldData.pageParams,
             pages: newData,
           };
         }
@@ -131,6 +139,7 @@ export function useChatBodyListeners(props = { attachListeners: true }) {
             };
           });
           return {
+            pageParams: oldData.pageParams,
             pages: newData,
           };
         }

@@ -85,7 +85,7 @@ export function DmModal({ open, setModal, toggleLoading }: Props) {
             users.map((user) => (
               <UserGroupBox
                 type="user"
-                avatar={user.avatar}
+                avatarUrl={user.avatarUrl}
                 id={user.id}
                 key={user.id}
                 lastSeen={user.lastSeen}

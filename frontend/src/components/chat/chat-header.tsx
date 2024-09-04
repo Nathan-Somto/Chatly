@@ -3,7 +3,6 @@ import P from "../ui/typo/P";
 import H2 from "../ui/typo/H2";
 import { Button } from "../ui/button";
 import { ChevronLeft, MoreHorizontal } from "lucide-react";
-import AvatarGroup from "../common/avatar-group";
 import { useActiveChat } from "@/hooks/useActiveChat";
 import { useMemo, useState } from "react";
 import { cn, formatLastSeen } from "@/lib/utils";

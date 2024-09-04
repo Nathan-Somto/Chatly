@@ -20,7 +20,7 @@ type ChatBoxType =
         bio?:string | null;
         inviteCode?: string | null;
         privacy?: PrivacyType | null;
-        avatarUrl: string; // for the other user
+        avatarUrl?: string | null; // for the other user
         imageUrl?: string | null; // for the group chat
     }
 type SearchDataType = (UserBox | (GroupBox & {isGroup: boolean}))[]

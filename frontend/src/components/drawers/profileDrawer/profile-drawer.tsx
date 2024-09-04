@@ -30,7 +30,7 @@ function ProfileDrawer({ isOpen, openDrawer }: DrawerProps) {
         ) : activeChat?.dmInfo ? (
           <DmContents
             username={activeChat.dmInfo.username}
-            avatar={activeChat.dmInfo.avatarUrl}
+            avatar={activeChat.dmInfo?.avatarUrl ?? null}
             lastSeen={activeChat.dmInfo?.lastSeen ?? new Date()}
             bio={activeChat.dmInfo?.bio ?? "No bio"}
             email={activeChat.dmInfo?.email ?? "No email"}

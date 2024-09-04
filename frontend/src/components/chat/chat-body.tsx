@@ -105,8 +105,9 @@ function ChatBody() {
         .filter((message) => message !== undefined);
       // add the new messages to the store
       console.log("data in chat body: ", msgsData);
-      if (msgsData) {
-        setMessages(msgsData.reverse());
+      if (msgsData !== undefined) {
+        msgsData.reverse()
+        setMessages(msgsData as Message[]);
       }
       if (response.pages.length === 1) {
         scrollToBottom();

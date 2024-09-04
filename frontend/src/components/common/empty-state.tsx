@@ -1,5 +1,4 @@
 import { MessagesSquareIcon } from 'lucide-react'
-import React from 'react'
 import P from '../ui/typo/P'
 
 export function EmptyState() {

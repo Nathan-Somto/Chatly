@@ -1,17 +1,18 @@
+import { Avatar } from "@/components/common/avatar";
 import { Button } from "@/components/ui/button";
 import H3 from "@/components/ui/typo/H3";
 import P from "@/components/ui/typo/P";
 import { useActiveChat } from "@/hooks/useActiveChat";
 import { useProfileStore } from "@/hooks/useProfile";
 import { cn, formatLastSeen } from "@/lib/utils";
-import { PhoneIcon, SlashIcon, Trash2Icon, VideoIcon } from "lucide-react";
+import { SlashIcon, Trash2Icon, VideoIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 type Props = {
   id: string;
   username: string;
   bio: string;
   lastSeen: Date;
-  avatar: string;
+  avatar: string | null;
   email: string;
   closeDrawer: () => void;
 };
@@ -32,10 +33,11 @@ export default function DmContents({
     <div>
       <header className="border-b mb-5 mt-6 pb-3">
         <div className=" flex items-center gap-x-5 justify-start">
-          <img
+          <Avatar
+            type="User"
             src={avatar}
-            alt="user's avatar"
-            className="h-24 w-24 rounded-full object-cover border-2 border-slate-500  dark:border-slate-700"
+            size={96}
+            alt={`${username ?? 'User'}'s avatar`}
           />
           <div>
             <H3>{username}</H3>

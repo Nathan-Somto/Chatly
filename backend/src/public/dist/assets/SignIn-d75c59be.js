@@ -1,0 +1,1 @@
+import{e,j as r,M as t}from"./index-d8866171.js";import{S as a}from"./useCustomPages-a847fb21.js";function o(){const{theme:n}=e();return r.jsx(a,{afterSignInUrl:"/chats-redirect",signUpUrl:"/sign-up",appearance:t(n),routing:"path",path:"/sign-in"})}export{o as default};

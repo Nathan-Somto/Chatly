@@ -91,7 +91,7 @@ function MessageForm() {
         id: chatId ?? "",
         isGroup: true,
         name: groupInfo?.name ?? "",
-        avatars: groupInfo?.avatars ?? [],
+        imageUrl: groupInfo?.imageUrl ?? null,
         description: groupInfo?.description,
         inviteCode: groupInfo?.inviteCode,
         privacy: groupInfo?.privacy ?? null,
@@ -100,7 +100,7 @@ function MessageForm() {
       // this means it is a dm
       if (dmInfo) {
         chatInfo.name = profile?.username ?? "";
-        chatInfo.avatars = [profile?.avatar ?? ""];
+        chatInfo.avatarUrl = profile?.avatar ?? null;
         chatInfo.bio = profile?.bio ?? null;
         chatInfo.email = profile?.email ?? null;
         chatInfo.lastSeen = new Date();

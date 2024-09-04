@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { InfiniteData, useInfiniteQuery as useIQ } from "@tanstack/react-query";
+import {  useInfiniteQuery as useIQ } from "@tanstack/react-query";
 import { GetInfiniteQueryType } from ".";
 import { mainApi } from "@/lib/axios";
 import { useGetToken } from "./useGetToken";
@@ -15,7 +15,6 @@ export default function useInfiniteQuery<K extends string, T>({
   defaultMessage,
   displayToast,
   cursorKey = "cursor",
-  nextCursorKey = "nextCursor",
 }: GetInfiniteQueryType<T>) {
   const [localEnabled, setLocalEnabled] = useState(false);
   const { token, refetchToken } = useGetToken({shouldFetchToken: true});

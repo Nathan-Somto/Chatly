@@ -54,10 +54,10 @@ app.use(morgan("dev"));
 router(app);
 app.use(errorHandler);
 socketIo(io);
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "frontend", "build")));
+if (process.env.NODE_ENV === "production" ) {
+  app.use(express.static(path.join(__dirname, "public", "dist")));
   app.get("*", (_, res) => {
-    res.sendFile(path.join(__dirname, "frontend", "build", "index.html"));
+    res.sendFile(path.join(__dirname, "public", "dist", "index.html"));
   });
 } else {
   app.get("/", (req, res) => {

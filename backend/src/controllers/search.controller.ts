@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../config/connectDb";
-import { formatUsersResponse } from "../utils/formatUsersResponse";
+import { prisma } from "../config/connectDb.js";
+import { formatUsersResponse } from "../utils/formatUsersResponse.js";
 /**
  * @method GET
  * @param req

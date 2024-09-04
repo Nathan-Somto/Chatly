@@ -13,7 +13,7 @@ import {
    changeRole,
   markAsRead,
   removeMember
-} from "../controllers/chats.controllers";
+} from "../controllers/chats.controllers.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
 const router = Router();

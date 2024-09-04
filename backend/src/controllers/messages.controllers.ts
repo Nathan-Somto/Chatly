@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../config/connectDb";
+import { prisma } from "../config/connectDb.js";
 /**
  * @method POST
  * @description creates a message which could be audio | text | video | image

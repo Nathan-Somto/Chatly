@@ -1,1 +1,1 @@
-export {swaggerOptions} from './swaggerOptions'
+export {swaggerOptions} from './swaggerOptions.js'

@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../config/connectDb";
+import { prisma } from "../config/connectDb.js";
 import { v4 as uuidv4 } from "uuid";
-import { checkIfAdminOrOwner } from "../utils/checkIfAdminOrOwner";
-import { formatGroupchatResponse } from "../utils/formatGroupchatResponse";
-import { createSystemMessage } from "../utils/createSystemMessage";
+import { checkIfAdminOrOwner } from "../utils/checkIfAdminOrOwner.js";
+import { formatGroupchatResponse } from "../utils/formatGroupchatResponse.js";
+import { createSystemMessage } from "../utils/createSystemMessage.js";
 
 
 /**

@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm i && npx tsc ./src",
+    "build": "npm i && npx tsc",
     "dev": "npx tsx watch ./src",
     "start": "node ./dist/index.js",
+    "build:local": "npx tsc && npm run start",
     "prisma:generate": "npx prisma db push"
   },
   "keywords": [],

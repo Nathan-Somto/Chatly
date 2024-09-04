@@ -1,1 +1,1 @@
-export {socketIo} from './io'
+export {socketIo} from './io.js'

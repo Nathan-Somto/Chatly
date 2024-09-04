@@ -1,4 +1,4 @@
-import { prisma } from "../config/connectDb";
+import { prisma } from "../config/connectDb.js";
 
 const checkIfAdminOrOwner = async (userId: string, chatId: string) => {
     const groupchat = await prisma.chat.findUnique({

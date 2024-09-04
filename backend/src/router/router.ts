@@ -1,18 +1,15 @@
 import { Express } from "express";
-import searchRouter from "../routes/search.routes";
-import userRouter from "../routes/user.routes";
-import messageRouter from "../routes/message.routes";
-import chatRouter from "../routes/chat.routes";
+import searchRouter from "../routes/search.routes.js";
+import userRouter from "../routes/user.routes.js";
+import messageRouter from "../routes/message.routes.js";
+import chatRouter from "../routes/chat.routes.js";
 import swaggerJSDoc from "swagger-jsdoc";
-import { swaggerOptions } from "../swagger";
+import { swaggerOptions } from "../swagger/index.js";
 import swaggerUi from "swagger-ui-express";
-import { cloudinaryService } from "../services/cloudinary";
-import { version } from "../../package.json";
-import { livekitService } from "../services/liveKit";
-import { joinViaLink } from "../controllers/chats.controllers";
+import { cloudinaryService } from "../services/cloudinary.js";
+import { livekitService } from "../services/liveKit.js";
+import { joinViaLink } from "../controllers/chats.controllers.js";
 export function router(app: Express) {
-  const apiPrefix = `api/v${version.split(".")[0]}/`;
-  console.log("apiPrefix", apiPrefix);
   const swaggerSpec = swaggerJSDoc(swaggerOptions);
   app.use(
     "/api/docs",

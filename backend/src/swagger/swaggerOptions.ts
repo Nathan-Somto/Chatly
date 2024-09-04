@@ -1,10 +1,9 @@
 import { SwaggerDefinition, Options } from "swagger-jsdoc";
-import { version } from "../../package.json";
 const swaggerDefinition: SwaggerDefinition = {
   openapi: "3.1.0",
   info: {
     title: "Chatly Api",
-    version,
+    version: "1.0.0",
     description: "The api documentation for the chatly application",
     contact: {
         name: "Nathan Somto",

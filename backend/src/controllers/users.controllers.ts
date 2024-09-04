@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from "express";
-import { prisma } from "../config/connectDb";
+import { prisma } from "../config/connectDb.js";
 import clerkClient from "@clerk/clerk-sdk-node";
-import { formatUsersResponse } from "../utils/formatUsersResponse";
+import { formatUsersResponse } from "../utils/formatUsersResponse.js";
 /**
  * @method GET
  * @description gets a given user profile

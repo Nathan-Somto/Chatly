@@ -5,12 +5,12 @@ import path from "path";
 import cors from "cors";
 import fileUpload from "express-fileupload";
 import morgan from "morgan";
-import { errorHandler } from "./middlewares/errorHandler";
+import { errorHandler } from "./middlewares/errorHandler.js";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import { getReqUrl } from "./utils/getReqUrl";
-import { router } from "./router";
-import { socketIo } from "./socket-io";
+import { getReqUrl } from "./utils/getReqUrl.js";
+import { router } from "./router/index.js";
+import { socketIo } from "./socket-io/index.js";
 const app = express();
 // create a http server
 const httpServer = createServer(app);

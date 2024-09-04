@@ -1,4 +1,4 @@
-import { prisma } from "../config/connectDb";
+import { prisma } from "../config/connectDb.js";
 
 export async function updateOnlineStatus(userId: string){
     try{

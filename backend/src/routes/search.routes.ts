@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { search } from "../controllers/search.controller";
+import { search } from "../controllers/search.controller.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 const router = Router();
 router.use(ClerkExpressRequireAuth());

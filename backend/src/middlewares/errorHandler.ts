@@ -1,6 +1,6 @@
-import { PrismaClientInitializationError, PrismaClientValidationError } from "@prisma/client/runtime/library";
+import { PrismaClientInitializationError, PrismaClientValidationError } from "@prisma/client/runtime/library.js";
 import { NextFunction, Request, Response } from "express";
-const errorHandler = (err: Error,req:Request, res: Response, next: NextFunction) => {
+const errorHandler = (err: Error,_req:Request, res: Response, _next: NextFunction) => {
     let message = "something went wrong";
     console.error('[Error]: ',err.message);
     let statusCode = err.message === 'Unauthenticated'? 400 : 500;

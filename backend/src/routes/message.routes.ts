@@ -3,7 +3,7 @@ import {
   createMessage,
   deleteMessage,
   editMessage,
-} from "../controllers/messages.controllers";
+} from "../controllers/messages.controllers.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 const router = Router();
 

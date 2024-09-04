@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { uploadFile } from "../utils/uploadFile";
+import { uploadFile } from "../utils/uploadFile.js";
 import fileUpload from "express-fileupload";
 
 const upload = async (

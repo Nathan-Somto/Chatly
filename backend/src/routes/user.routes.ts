@@ -6,7 +6,7 @@ import {
   getUserChats,
   getUsers,
   updateProfile,
-} from "../controllers/users.controllers";
+} from "../controllers/users.controllers.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 const router = Router();
 router.use(ClerkExpressRequireAuth());
